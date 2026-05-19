@@ -2,6 +2,8 @@
 
 A structured, reusable library of AI agent definitions, prompt files, and project-specific configurations for automating software engineering tasks across multiple projects.
 
+**New here? Start with [QUICKSTART.md](QUICKSTART.md) — onboard your project in under 10 minutes.**
+
 ---
 
 ## Directory Layout
@@ -304,6 +306,10 @@ your-project/
 ---
 
 ## First Time Here?
+
+**Start with [QUICKSTART.md](QUICKSTART.md)** — onboard your project in under 10 minutes (copy template, fill placeholders, run first prompt).
+
+Once your project folder is set up, continue here:
 
 **Step 1 — Choose your AI tool**
 See `integrate-agent/` → pick the sub-folder that matches your tool → follow `SETUP_GUIDE.md`.

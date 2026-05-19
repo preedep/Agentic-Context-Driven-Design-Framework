@@ -1,5 +1,7 @@
 # SETUP_GUIDE — OpenAI Codex / ChatGPT Integration
 
+> **New to the framework?** Complete [QUICKSTART.md](../../QUICKSTART.md) first — copy the example project and fill your placeholder values before setting up the API integration.
+
 ## Overview
 
 OpenAI tools do not auto-read files from disk. The integration pattern is:
@@ -44,7 +46,7 @@ All script examples use `FRAMEWORK_ROOT = Path("agent-framework")` — no change
 **Git submodule setup:**
 
 ```bash
-git submodule add https://your-gitlab/agent-framework.git agent-framework
+git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
 git submodule update --init --recursive
 ```
 

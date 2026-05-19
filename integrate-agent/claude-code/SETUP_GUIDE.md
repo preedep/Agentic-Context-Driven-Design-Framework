@@ -1,5 +1,7 @@
 # SETUP_GUIDE — Claude Code Integration
 
+> **New to the framework?** Complete [QUICKSTART.md](../../QUICKSTART.md) first — copy the example project and fill your placeholder values before wiring up Claude Code.
+
 ## Overview
 
 Claude Code reads `CLAUDE.md` at startup and uses it as persistent context for the entire session. The setup wires the framework's AGENTS.md files into that context so Claude Code knows the module map without being told each time. Use `@file` to reference any file directly in a prompt — Claude Code reads and injects the full content automatically.
@@ -39,7 +41,7 @@ The project code lives in its own repo. Claude Code only auto-loads `CLAUDE.md` 
 **Git submodule setup:**
 
 ```bash
-git submodule add https://your-gitlab/agent-framework.git agent-framework
+git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
 git submodule update --init --recursive
 ```
 

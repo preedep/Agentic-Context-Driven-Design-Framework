@@ -82,6 +82,8 @@ This separation is what makes the framework tool-agnostic: the prompt files desc
 
 ## Adding a New Project
 
+See `QUICKSTART.md` at the repo root for the step-by-step onboarding guide. Summary below.
+
 Copy the `projects/acme-pay/` folder as a template. Minimum required structure:
 
 ```

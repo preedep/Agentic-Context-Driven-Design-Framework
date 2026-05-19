@@ -1,5 +1,7 @@
 # SETUP_GUIDE — GitHub Copilot Integration
 
+> **New to the framework?** Complete [QUICKSTART.md](../../QUICKSTART.md) first — copy the example project and fill your placeholder values before wiring up Copilot.
+
 ## Overview
 
 GitHub Copilot Chat picks up repository-level instructions from `.github/copilot-instructions.md`. This file acts like Claude Code's `CLAUDE.md` — it is injected into every Copilot Chat session automatically. Use `#file:` to attach any framework file as explicit context in a chat message.
@@ -40,7 +42,7 @@ Copilot only indexes files inside the VS Code workspace. Add the framework via o
 **Git submodule setup:**
 
 ```bash
-git submodule add https://your-gitlab/agent-framework.git agent-framework
+git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
 git submodule update --init --recursive
 ```
 

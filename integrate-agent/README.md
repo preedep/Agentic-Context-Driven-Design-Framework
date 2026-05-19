@@ -2,6 +2,8 @@
 
 Tool-specific integration guides for the Multi-Agent AI Automation Framework.
 
+> **Before wiring up a tool:** complete [QUICKSTART.md](../QUICKSTART.md) first — copy the example project and fill your placeholder values. Then come back here to configure your AI tool.
+
 The framework's prompts are plain Markdown — they work with any LLM tool. This folder shows **how to wire them up** in each tool's native style so the workflow feels natural, not bolted-on.
 
 ---

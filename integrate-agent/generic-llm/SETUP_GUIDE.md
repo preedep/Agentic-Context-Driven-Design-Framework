@@ -1,5 +1,7 @@
 # SETUP_GUIDE — Generic LLM Integration
 
+> **New to the framework?** Complete [QUICKSTART.md](../../QUICKSTART.md) first — copy the example project and fill your placeholder values before running any prompt.
+
 ## Overview
 
 This guide works with **any LLM** — ChatGPT, Gemini, Claude.ai, Ollama, LM Studio, or any API-compatible model. No tool-specific features required. The pattern is always:
@@ -37,7 +39,7 @@ Use paths like: `agent-framework/projects/acme-pay/AGENTS.md`
 **Git submodule setup:**
 
 ```bash
-git submodule add https://your-gitlab/agent-framework.git agent-framework
+git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
 git submodule update --init --recursive
 ```
 
