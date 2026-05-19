@@ -10,6 +10,8 @@ Claude Code is a CLI + IDE extension that reads files, writes code, and runs tas
 
 Use `@file` to inject any framework file directly into a prompt.
 
+> **Headless / scripted usage:** See [RUN_STEP_GUIDE.md](RUN_STEP_GUIDE.md) — a shell script runner (`run-step.sh`) that assembles context files and calls `claude -p` for each workflow step automatically.
+
 ---
 
 ## Part 1 — One-Time Setup (do this once)
@@ -387,7 +389,20 @@ Show the YAML and the command to run the update script.
 
 ## CI/CD mode
 
-Run framework prompts headless in a pipeline:
+For scripted or pipeline usage, use [`run-step.sh`](RUN_STEP_GUIDE.md) — it assembles context files and calls `claude -p` per step, with a progress spinner for interactive runs and clean output in CI.
+
+```bash
+# Run a single step headless
+./run-step.sh code-review -p acme-pay -f payment-gateway
+
+# Or run all steps in one command
+./run-step.sh run-all -p acme-pay -f payment-gateway \
+  -n "Payment Gateway" -d "Allow operators to submit outbound payment transactions"
+```
+
+See [RUN_STEP_GUIDE.md](RUN_STEP_GUIDE.md) for all parameters and examples.
+
+Alternatively, call `claude -p` directly:
 
 ```bash
 claude -p "Read @agent-framework/projects/acme-pay/AGENTS.md and \
