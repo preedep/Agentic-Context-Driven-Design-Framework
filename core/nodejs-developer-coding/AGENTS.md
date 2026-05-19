@@ -400,6 +400,207 @@ After adding or modifying code:
 
 ---
 
+## Unit Testing
+
+### Framework and libraries
+
+| Library | Purpose |
+|---|---|
+| Jest (`jest`) | Test runner + assertion library |
+| `ts-jest` | TypeScript transformer for Jest |
+| `@types/jest` | Type definitions |
+
+> **Project override:** Some projects use Vitest instead of Jest. Check the project's AGENTS.md. The patterns below apply to both; replace `jest` with `vitest` in the imports.
+
+### Configure Jest (`jest.config.ts`)
+
+```typescript
+import type { Config } from 'jest';
+
+const config: Config = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  testMatch: ['**/*.test.ts'],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/main.ts'],
+  coverageThreshold: { global: { lines: 80 } },
+};
+export default config;
+```
+
+### Run all tests
+
+```bash
+npm test
+# or
+npx jest
+```
+
+### Run a single test file
+
+```bash
+npx jest src/payment/service/PaymentServiceImpl.test.ts
+```
+
+### Run a single test by name pattern
+
+```bash
+npx jest --testNamePattern "should throw when duplicate reference"
+```
+
+### Run with coverage report
+
+```bash
+npm test -- --coverage
+# HTML report generated at: coverage/lcov-report/index.html
+```
+
+### Watch mode (re-run on file change)
+
+```bash
+npx jest --watch
+```
+
+### Unit test structure
+
+```typescript
+// src/payment/service/PaymentServiceImpl.test.ts
+import { PaymentServiceImpl } from './PaymentServiceImpl';
+import { PaymentRepository } from '../repository/PaymentRepository';
+
+const mockRepository: jest.Mocked<PaymentRepository> = {
+  findByReferenceId: jest.fn(),
+  findByStatus: jest.fn(),
+  save: jest.fn(),
+};
+
+describe('PaymentServiceImpl', () => {
+  let service: PaymentServiceImpl;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    service = new PaymentServiceImpl(mockRepository);
+  });
+
+  describe('submitPayment', () => {
+    it('should return saved payment when input is valid', async () => {
+      // Arrange
+      mockRepository.findByReferenceId.mockResolvedValue(null);
+      mockRepository.save.mockResolvedValue({ referenceId: 'REF001', status: 'PENDING' });
+
+      // Act
+      const result = await service.submitPayment({ referenceId: 'REF001', amount: 100, currency: 'THB', accountNo: '001' });
+
+      // Assert
+      expect(result.referenceId).toBe('REF001');
+      expect(result.status).toBe('PENDING');
+      expect(mockRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw ResourceConflictError when reference already exists', async () => {
+      mockRepository.findByReferenceId.mockResolvedValue({ referenceId: 'REF001', status: 'PENDING' });
+
+      await expect(
+        service.submitPayment({ referenceId: 'REF001', amount: 100, currency: 'THB', accountNo: '001' }),
+      ).rejects.toThrow('PAYMENT_DUPLICATE');
+    });
+  });
+});
+```
+
+Rules:
+- Test file naming: `{{ClassName}}.test.ts` co-located next to the source file, or under `__tests__/`
+- `describe` block per class; nested `describe` per method
+- Test naming: `'should {{expected behavior}} when {{condition}}'`
+- `jest.clearAllMocks()` in `beforeEach` — never share state between tests
+- Use `jest.Mocked<T>` for typed mocks — never cast to `any`
+- One logical assertion group per test
+
+---
+
+## Code Formatting
+
+### Tool: Prettier + ESLint
+
+```bash
+# Install (if not already present)
+npm install --save-dev prettier eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-config-prettier
+```
+
+### Check formatting (no changes written)
+
+```bash
+npx prettier --check "src/**/*.ts"
+```
+
+### Apply formatting (overwrites files)
+
+```bash
+npx prettier --write "src/**/*.ts"
+```
+
+### Run linter
+
+```bash
+npm run lint
+# or directly:
+npx eslint "src/**/*.ts"
+```
+
+### Fix auto-fixable lint errors
+
+```bash
+npx eslint "src/**/*.ts" --fix
+```
+
+### Run format + lint together
+
+```bash
+# Add to package.json scripts:
+# "format": "prettier --write \"src/**/*.ts\"",
+# "lint": "eslint \"src/**/*.ts\"",
+# "lint:fix": "eslint \"src/**/*.ts\" --fix",
+
+npm run format && npm run lint
+```
+
+### Recommended `.prettierrc`
+
+```json
+{
+  "singleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "printWidth": 120,
+  "tabWidth": 2,
+  "arrowParens": "always"
+}
+```
+
+### Recommended `eslint.config.js` (flat config, ESLint v9+)
+
+```javascript
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
+
+export default [
+  {
+    files: ['src/**/*.ts'],
+    languageOptions: { parser: tsparser },
+    plugins: { '@typescript-eslint': tseslint },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-console': 'error',
+    },
+  },
+];
+```
+
+> **Project override:** Check the project's AGENTS.md for the exact Prettier and ESLint config in use. Always mirror the existing config rather than introducing a new one.
+
+---
+
 ## DO NOT
 
 - Do not put business logic in controllers or route handlers

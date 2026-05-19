@@ -366,6 +366,152 @@ After adding or modifying code:
 
 ---
 
+## Unit Testing
+
+### Framework and libraries
+
+| Library | Purpose |
+|---|---|
+| JUnit 5 (`junit-jupiter`) | Test runner |
+| Mockito (`mockito-core`) | Mocking dependencies |
+| AssertJ (`assertj-core`) | Fluent assertions |
+| Spring Boot Test (`@SpringBootTest`) | Integration tests only |
+
+### Run all tests
+
+```bash
+# Maven
+mvn test
+
+# Gradle
+./gradlew test
+```
+
+### Run a single test class
+
+```bash
+# Maven
+mvn test -Dtest=PaymentServiceImplTest
+
+# Gradle
+./gradlew test --tests "com.acme.pay.service.PaymentServiceImplTest"
+```
+
+### Run a single test method
+
+```bash
+# Maven
+mvn test -Dtest=PaymentServiceImplTest#should_throwException_when_duplicateReference
+
+# Gradle
+./gradlew test --tests "com.acme.pay.service.PaymentServiceImplTest.should_throwException_when_duplicateReference"
+```
+
+### Test report
+
+```bash
+# Maven — HTML report generated at:
+target/surefire-reports/
+
+# Gradle — HTML report generated at:
+build/reports/tests/test/index.html
+```
+
+### Unit test structure
+
+```java
+@ExtendWith(MockitoExtension.class)
+class PaymentServiceImplTest {
+
+    @Mock
+    private PaymentRepository repository;
+
+    @InjectMocks
+    private PaymentServiceImpl service;
+
+    @Test
+    @DisplayName("should return saved payment when input is valid")
+    void should_returnSavedPayment_when_inputIsValid() {
+        // Arrange
+        SubmitPaymentRequest request = new SubmitPaymentRequest("REF001", BigDecimal.TEN, "THB");
+        PaymentDomain saved = new PaymentDomain("REF001", "PENDING");
+        when(repository.findByReferenceId("REF001")).thenReturn(Optional.empty());
+        when(repository.save(any())).thenReturn(saved);
+
+        // Act
+        PaymentDomain result = service.submitPayment(request);
+
+        // Assert
+        assertThat(result.getReferenceId()).isEqualTo("REF001");
+        assertThat(result.getStatus()).isEqualTo("PENDING");
+        verify(repository).save(any());
+    }
+
+    @Test
+    @DisplayName("should throw InputValidationException when reference already exists")
+    void should_throwException_when_duplicateReference() {
+        when(repository.findByReferenceId("REF001"))
+            .thenReturn(Optional.of(new PaymentDomain("REF001", "PENDING")));
+
+        assertThatThrownBy(() -> service.submitPayment(new SubmitPaymentRequest("REF001", BigDecimal.TEN, "THB")))
+            .isInstanceOf(InputValidationException.class)
+            .hasMessageContaining("already exists");
+    }
+}
+```
+
+Rules:
+- `@ExtendWith(MockitoExtension.class)` — never JUnit 4 (`@RunWith`)
+- Method naming: `should_{{expectedBehavior}}_when_{{condition}}`
+- `@DisplayName` on every test method
+- Never mock the class under test — only its dependencies
+- One logical assertion group per test — do not assert unrelated things in the same test
+
+---
+
+## Code Formatting
+
+### Tool: Checkstyle + google-java-format (or project-configured formatter)
+
+```bash
+# Maven — check formatting (fails build on violation)
+mvn checkstyle:check
+
+# Apply google-java-format to a single file
+java -jar google-java-format.jar --replace src/main/java/com/acme/pay/service/PaymentServiceImpl.java
+
+# Apply to all files under src/
+find src/ -name "*.java" | xargs java -jar google-java-format.jar --replace
+```
+
+> **Project override:** Check the project's AGENTS.md for the configured formatter. Some projects use Spotless, EditorConfig, or an IDE-exported formatter profile (`.editorconfig`, `eclipse-formatter.xml`).
+
+### Spotless (if configured)
+
+```bash
+# Maven — check only
+mvn spotless:check
+
+# Maven — apply formatting
+mvn spotless:apply
+
+# Gradle — check only
+./gradlew spotlessCheck
+
+# Gradle — apply formatting
+./gradlew spotlessApply
+```
+
+### Key formatting rules (Google Java Style)
+
+- Indentation: 2 spaces (not tabs)
+- Line length: 100 characters
+- Braces: always on the same line (`if (x) {`)
+- Import order: static imports first, then third-party, then project
+- No wildcard imports (`import java.util.*` is forbidden)
+
+---
+
 ## DO NOT
 
 - Do not put business logic in controllers
