@@ -13,8 +13,7 @@ Use the framework's prompt files with OpenAI Codex (API), ChatGPT (chat UI), or 
 
 | File | Purpose |
 |---|---|
-| `SETUP_GUIDE.md` | API configuration, model selection, system message pattern |
-| `WORKFLOW_EXAMPLES.md` | ChatGPT chat prompts and API call examples for each module |
+| `GUIDE.md` | Getting started: one-time setup + all task workflows in one place |
 
 ## Standard Inputs
 

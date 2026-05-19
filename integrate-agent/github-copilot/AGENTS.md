@@ -13,8 +13,7 @@ Configure GitHub Copilot Chat (VS Code or JetBrains) to use the framework's AGEN
 
 | File | Purpose |
 |---|---|
-| `SETUP_GUIDE.md` | One-time setup: copilot-instructions.md, #file references |
-| `WORKFLOW_EXAMPLES.md` | Chat prompts for each core agent module |
+| `GUIDE.md` | Getting started: one-time setup + all task workflows in one place |
 
 ## Standard Inputs
 

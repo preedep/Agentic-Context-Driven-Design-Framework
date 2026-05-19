@@ -13,7 +13,7 @@ A tool-agnostic baseline for using the framework with any LLM — chat UI, API, 
 
 | File | Purpose |
 |---|---|
-| `SETUP_GUIDE.md` | Universal 3-step workflow, placeholder filling, context window tips |
+| `GUIDE.md` | Getting started: one-time setup + all task workflows in one place |
 | `TOOL_COMPARISON.md` | Feature comparison table across Claude Code, Copilot, ChatGPT, and local models |
 
 ## Standard Inputs

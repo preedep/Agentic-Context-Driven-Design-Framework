@@ -12,8 +12,7 @@ Configure and operate the Multi-Agent AI Automation Framework inside Claude Code
 
 | File | Purpose |
 |---|---|
-| `SETUP_GUIDE.md` | One-time setup: CLAUDE.md, permissions, settings |
-| `WORKFLOW_EXAMPLES.md` | Step-by-step workflows for each core agent module |
+| `GUIDE.md` | Getting started: one-time setup + all task workflows in one place |
 | `HOOKS_AND_AUTOMATION.md` | Auto-run behaviours via Claude Code hooks |
 
 ## Standard Inputs

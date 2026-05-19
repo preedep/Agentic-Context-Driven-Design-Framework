@@ -10,12 +10,12 @@ The framework's prompts are plain Markdown — they work with any LLM tool. This
 
 ## Sub-folders
 
-| Tool | Setup | Workflows | Extra |
-|---|---|---|---|
-| **Claude Code** (CLI / IDE) | [SETUP_GUIDE.md](claude-code/SETUP_GUIDE.md) | [WORKFLOW_EXAMPLES.md](claude-code/WORKFLOW_EXAMPLES.md) | [HOOKS_AND_AUTOMATION.md](claude-code/HOOKS_AND_AUTOMATION.md) |
-| **GitHub Copilot** (VS Code / JetBrains) | [SETUP_GUIDE.md](github-copilot/SETUP_GUIDE.md) | [WORKFLOW_EXAMPLES.md](github-copilot/WORKFLOW_EXAMPLES.md) | — |
-| **OpenAI / ChatGPT** (API + chat UI) | [SETUP_GUIDE.md](openai-codex/SETUP_GUIDE.md) | [WORKFLOW_EXAMPLES.md](openai-codex/WORKFLOW_EXAMPLES.md) | — |
-| **Any LLM** (portable baseline) | [SETUP_GUIDE.md](generic-llm/SETUP_GUIDE.md) | — | [TOOL_COMPARISON.md](generic-llm/TOOL_COMPARISON.md) |
+| Tool | Guide | Extra |
+|---|---|---|
+| **Claude Code** (CLI / IDE) | [GUIDE.md](claude-code/GUIDE.md) | [HOOKS_AND_AUTOMATION.md](claude-code/HOOKS_AND_AUTOMATION.md) |
+| **GitHub Copilot** (VS Code / JetBrains) | [GUIDE.md](github-copilot/GUIDE.md) | — |
+| **OpenAI / ChatGPT** (API + chat UI) | [GUIDE.md](openai-codex/GUIDE.md) | — |
+| **Any LLM** (portable baseline) | [GUIDE.md](generic-llm/GUIDE.md) | [TOOL_COMPARISON.md](generic-llm/TOOL_COMPARISON.md) |
 
 ---
 

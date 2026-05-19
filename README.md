@@ -447,12 +447,12 @@ The framework follows a strict **FSD → Test → Code** sequence. Each step fee
 
 ### Tool Integration
 
-| Tool | Path | Use When |
+| Tool | Guide | Use When |
 |---|---|---|
-| Claude Code | [`integrate-agent/claude-code/AGENTS.md`](integrate-agent/claude-code/AGENTS.md) | Agentic multi-file edits, hooks, CI via `claude -p` |
-| GitHub Copilot | [`integrate-agent/github-copilot/AGENTS.md`](integrate-agent/github-copilot/AGENTS.md) | Inline editor chat with `#file:` and `@workspace` |
-| OpenAI / ChatGPT | [`integrate-agent/openai-codex/AGENTS.md`](integrate-agent/openai-codex/AGENTS.md) | API automation pipelines or ChatGPT chat UI |
-| Any LLM | [`integrate-agent/generic-llm/AGENTS.md`](integrate-agent/generic-llm/AGENTS.md) | Portable baseline; tool comparison table |
+| Claude Code | [`integrate-agent/claude-code/GUIDE.md`](integrate-agent/claude-code/GUIDE.md) | Agentic multi-file edits, hooks, CI via `claude -p` |
+| GitHub Copilot | [`integrate-agent/github-copilot/GUIDE.md`](integrate-agent/github-copilot/GUIDE.md) | Inline editor chat with `#file:` and `@workspace` |
+| OpenAI / ChatGPT | [`integrate-agent/openai-codex/GUIDE.md`](integrate-agent/openai-codex/GUIDE.md) | API automation pipelines or ChatGPT chat UI |
+| Any LLM | [`integrate-agent/generic-llm/GUIDE.md`](integrate-agent/generic-llm/GUIDE.md) | Portable baseline; tool comparison table |
 
 ---
 

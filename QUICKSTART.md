@@ -106,12 +106,12 @@ your-project-repo/
 
 ## Choosing an AI Tool
 
-| Tool | Setup guide |
+| Tool | Guide |
 |---|---|
-| Claude Code | `integrate-agent/claude-code/AGENTS.md` |
-| GitHub Copilot | `integrate-agent/github-copilot/AGENTS.md` |
-| OpenAI / ChatGPT | `integrate-agent/openai-codex/AGENTS.md` |
-| Any LLM | `integrate-agent/generic-llm/AGENTS.md` |
+| Claude Code | [`integrate-agent/claude-code/GUIDE.md`](integrate-agent/claude-code/GUIDE.md) |
+| GitHub Copilot | [`integrate-agent/github-copilot/GUIDE.md`](integrate-agent/github-copilot/GUIDE.md) |
+| OpenAI / ChatGPT | [`integrate-agent/openai-codex/GUIDE.md`](integrate-agent/openai-codex/GUIDE.md) |
+| Any LLM | [`integrate-agent/generic-llm/GUIDE.md`](integrate-agent/generic-llm/GUIDE.md) |
 
 ---
 
