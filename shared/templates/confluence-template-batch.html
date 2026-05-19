@@ -1,0 +1,255 @@
+<!--
+  Confluence template — Generic Batch (readability-optimized layout)
+
+  Use with: GENERATE_CONFLUENCE_FROM_BATCH_TECH_SPEC.md
+  Style   : project-agnostic; example hints inside {{...}} placeholders are illustrative only.
+            Replace them with values from the tech spec / AGENTS.md.
+
+  Layout features:
+    - Section 0 "At a Glance" quick-reference table
+    - Auto-generated Table of Contents at the very top
+    - Section 2 (Processing Logic) split into per-job code blocks (one block per job)
+    - Section 4.0 "Data Flow Summary" before per-table mapping sub-sections
+    - Section 4 sub-section heading: TableName first, database name as italicized sub-line
+    - Section 6 (Error Handling) has FOUR columns: Scenario | Result | Retry | Action Required
+    - Section 7 "Migration / Rollout Notes" (optional — agent fills "Not applicable" if none)
+
+  Placeholder convention:
+    Single-instance placeholders   : {{Placeholder}}
+    Repeating-row placeholders     : commented "REPEAT BLOCK START/END" markers
+    Optional sections              : commented "OPTIONAL — keep or replace with 'Not applicable for this release.'"
+-->
+
+<ac:structured-macro ac:name="toc" ac:schema-version="1">
+  <ac:parameter ac:name="minLevel">2</ac:parameter>
+  <ac:parameter ac:name="maxLevel">3</ac:parameter>
+  <ac:parameter ac:name="outline">true</ac:parameter>
+  <ac:parameter ac:name="style">disc</ac:parameter>
+</ac:structured-macro>
+<hr/>
+
+<h2>0. At a Glance</h2>
+<table data-layout="default" data-table-width="760">
+  <colgroup>
+    <col style="width: 240.0px;"/>
+    <col style="width: 520.0px;"/>
+  </colgroup>
+  <tbody>
+    <tr>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Field</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Value</strong></p></th>
+    </tr>
+    <tr><td><p>Service / Project</p></td><td><p>{{ServiceName}}</p></td></tr>
+    <tr><td><p>Feature / Release</p></td><td><p>{{FeatureName}}</p></td></tr>
+    <tr><td><p>Type of change</p></td><td><p>{{NewJob | JobBehaviorChange | ScheduleChange | ConfigChange | Mix}}</p></td></tr>
+    <tr><td><p>Trigger</p></td><td><p>{{e.g. cron from <config-source> — N keys, one per job}}</p></td></tr>
+    <tr><td><p>Distributed lock</p></td><td><p>{{e.g. <lock-mechanism> per job — <LOCK_NAME_PATTERN>; or "Not applicable"}}</p></td></tr>
+    <tr><td><p>Reads from</p></td><td><p>{{comma-separated table list}}</p></td></tr>
+    <tr><td><p>Writes to</p></td><td><p>{{comma-separated table list}}</p></td></tr>
+    <tr><td><p>External calls</p></td><td><p>{{e.g. POST <base-url>/<service>/v1/<resource>/<action>}}</p></td></tr>
+    <tr><td><p>Failure mode</p></td><td><p>{{e.g. Record stays in 'PENDING' status, automatic retry on next scheduled run}}</p></td></tr>
+    <tr><td><p>DB prerequisites</p></td><td><p>{{e.g. db-prerequisites-<release>.sql — new table + N config rows}}</p></td></tr>
+    <tr><td><p>Backward compatibility</p></td><td><p>{{e.g. Old key '<old.key.name>' deprecated; legacy '<old-format>' value still accepted}}</p></td></tr>
+  </tbody>
+</table>
+<hr/>
+
+<h2>1. Overview</h2>
+<p style="margin-left: 30.0px;">{{Overview}}</p>
+<hr/>
+
+<h2>2. Processing Logic</h2>
+<p style="margin-left: 30.0px;"><em>One code block per job. Unchanged jobs reference the prior spec instead of re-documenting full steps.</em></p>
+
+<!-- REPEAT BLOCK START — one h3 + one code macro per job (new, changed, OR unchanged-but-rescheduled) -->
+<h3 style="margin-left: 30.0px;">2.{{N}} {{JobName}} {{(NEW) | (CHANGED) | (UNCHANGED — schedule only)}}</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1">
+  <ac:parameter ac:name="breakoutMode">wide</ac:parameter>
+  <ac:parameter ac:name="breakoutWidth">760</ac:parameter>
+  <ac:plain-text-body><![CDATA[{{ProcessingLogicForThisJob}}]]></ac:plain-text-body>
+</ac:structured-macro>
+<!-- REPEAT BLOCK END -->
+
+<!-- OPTIONAL — include only if the scheduling mechanism changed in this release -->
+<h3 style="margin-left: 30.0px;">2.X Schedule Change Summary</h3>
+<table data-layout="default" data-table-width="760">
+  <tbody>
+    <tr>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Aspect</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Before</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>After</strong></p></th>
+    </tr>
+    <tr><td><p>{{e.g. Schedule source}}</p></td><td><p>{{e.g. Single key '<old.cutofftime.key>'}}</p></td><td><p>{{e.g. N keys — one per job}}</p></td></tr>
+    <tr><td><p>{{e.g. Lock name}}</p></td><td><p>{{e.g. <SHARED_LOCK_NAME> (single)}}</p></td><td><p>{{e.g. <LOCK_A> / <LOCK_B> / <LOCK_C>}}</p></td></tr>
+    <tr><td><p>{{e.g. Value format}}</p></td><td><p>{{e.g. 'H|H|H' (hours only)}}</p></td><td><p>{{e.g. 'HH:mm|HH:mm' (per-minute precision); legacy 'H' still accepted}}</p></td></tr>
+  </tbody>
+</table>
+<hr/>
+
+<h2>3. Sequence Diagrams</h2>
+<p style="margin-left: 30.0px;"><em>One diagram per new or significantly-changed job. Unchanged jobs are not re-diagrammed.</em></p>
+
+<!-- REPEAT BLOCK START — one PlantUML macro per new/changed job -->
+<h3 style="margin-left: 30.0px;">3.{{N}} {{JobName}}</h3>
+<ac:structured-macro ac:name="plantumlcloud" ac:schema-version="1" data-layout="default">
+  <ac:parameter ac:name="toolbar">bottom</ac:parameter>
+  <ac:parameter ac:name="filename">{{JobName}}-SequenceDiagram.svg</ac:parameter>
+  <ac:parameter ac:name="data">@startuml
+autonumber
+{{SEQUENCE_DIAGRAM_FOR_THIS_JOB}}
+@enduml</ac:parameter>
+  <ac:parameter ac:name="compressed">false</ac:parameter>
+  <ac:parameter ac:name="revision">1</ac:parameter>
+</ac:structured-macro>
+<!-- REPEAT BLOCK END -->
+<hr/>
+
+<h2>4. Mapping</h2>
+
+<h3 style="margin-left: 30.0px;">4.0 Data Flow Summary</h3>
+<p style="margin-left: 30.0px;"><em>Quick reference: which job touches which table, and in what direction.</em></p>
+<table data-layout="default" data-table-width="900">
+  <colgroup>
+    <col style="width: 260.0px;"/>
+    <col style="width: 320.0px;"/>
+    <col style="width: 320.0px;"/>
+  </colgroup>
+  <tbody>
+    <tr>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Job</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Reads from</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Writes to</strong></p></th>
+    </tr>
+    <!-- REPEAT ROW per job -->
+    <tr>
+      <td><p>{{JobName}}</p></td>
+      <td><p>{{Reads — Table1, Table2}}</p></td>
+      <td><p>{{Writes — Table3 (column=value), Table4 (column=value)}}</p></td>
+    </tr>
+    <!-- /REPEAT ROW -->
+  </tbody>
+</table>
+
+<!-- REPEAT BLOCK START — one block per DB table read or written by the feature -->
+<h3 style="margin-left: 30.0px;">4.{{N}} {{TableName}}</h3>
+<p style="margin-left: 30.0px;"><em>Database: {{DatabaseName}} &nbsp;|&nbsp; Direction: {{READ | WRITE | READ+WRITE}}</em></p>
+<p style="margin-left: 30.0px;">{{ShortPurposeOneSentence}}</p>
+<table data-layout="center" data-table-width="1107">
+  <colgroup>
+    <col style="width: 369.0px;"/>
+    <col style="width: 369.0px;"/>
+    <col style="width: 369.0px;"/>
+  </colgroup>
+  <tbody>
+    <tr>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Source Field</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Backend Field (table.column)</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Remark</strong></p></th>
+    </tr>
+    <!-- REPEAT ROW per column read or written -->
+    <tr>
+      <td><p>{{SourceField}}</p></td>
+      <td><p>{{BackendField}}</p></td>
+      <td><p>{{Remark}}</p></td>
+    </tr>
+    <!-- /REPEAT ROW -->
+  </tbody>
+</table>
+
+<h4 style="margin-left: 30.0px;">DB Query</h4>
+<ac:structured-macro ac:name="code" ac:schema-version="1">
+  <ac:parameter ac:name="breakoutMode">wide</ac:parameter>
+  <ac:parameter ac:name="breakoutWidth">4000</ac:parameter>
+  <ac:plain-text-body><![CDATA[{{SQL_OR_JPQL_FOR_THIS_TABLE}}]]></ac:plain-text-body>
+</ac:structured-macro>
+<h4 style="margin-left: 30.0px;">Note</h4>
+<p style="margin-left: 30.0px;">{{NoteForThisTable}}</p>
+<!-- REPEAT BLOCK END -->
+<hr/>
+
+<h2>5. Configuration Path</h2>
+<p style="margin-left: 30.0px;"><em>Every new or changed config key — including default behavior if missing.</em></p>
+<table data-layout="default" data-table-width="900">
+  <colgroup>
+    <col style="width: 260.0px;"/>
+    <col style="width: 110.0px;"/>
+    <col style="width: 200.0px;"/>
+    <col style="width: 200.0px;"/>
+    <col style="width: 130.0px;"/>
+  </colgroup>
+  <tbody>
+    <tr>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Key</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Source</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Format</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Example</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>If missing</strong></p></th>
+    </tr>
+    <!-- REPEAT ROW per config key -->
+    <tr>
+      <td><p>{{ConfigKey}}</p></td>
+      <td><p>{{e.g. SystemConfig | application.yml | env var | Vault | AWS Secrets Manager | Azure KeyVault | GCP Secret Manager}}</p></td>
+      <td><p>{{Format}}</p></td>
+      <td><p>{{ExampleValue}}</p></td>
+      <td><p>{{Fail-fast | WARN-and-skip | inherits default}}</p></td>
+    </tr>
+    <!-- /REPEAT ROW -->
+  </tbody>
+</table>
+
+<!-- OPTIONAL — keep ONLY if there is a non-trivial config example to show in raw form -->
+<h3 style="margin-left: 30.0px;">5.X Configuration Example (raw)</h3>
+<ac:structured-macro ac:name="code" ac:schema-version="1">
+  <ac:parameter ac:name="breakoutMode">wide</ac:parameter>
+  <ac:parameter ac:name="breakoutWidth">760</ac:parameter>
+  <ac:plain-text-body><![CDATA[{{RawConfigBlock}}]]></ac:plain-text-body>
+</ac:structured-macro>
+<hr/>
+
+<h2>6. Error Handling</h2>
+<p style="margin-left: 30.0px;"><em>Includes operational action so on-call engineers can act without reading the code.</em></p>
+<table data-layout="default" data-table-width="1107">
+  <colgroup>
+    <col style="width: 320.0px;"/>
+    <col style="width: 360.0px;"/>
+    <col style="width: 130.0px;"/>
+    <col style="width: 297.0px;"/>
+  </colgroup>
+  <tbody>
+    <tr>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Scenario</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Result</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Retry</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Action Required</strong></p></th>
+    </tr>
+    <!-- REPEAT ROW per scenario -->
+    <tr>
+      <td><p>{{Scenario}}</p></td>
+      <td><p>{{Result}}</p></td>
+      <td><p>{{✅ | ❌ | short text}}</p></td>
+      <td><p>{{None | Operator action description}}</p></td>
+    </tr>
+    <!-- /REPEAT ROW -->
+  </tbody>
+</table>
+<hr/>
+
+<!-- OPTIONAL — replace entire section body with "Not applicable for this release." if nothing to migrate -->
+<h2>7. Migration / Rollout Notes</h2>
+<table data-layout="default" data-table-width="900">
+  <colgroup>
+    <col style="width: 200.0px;"/>
+    <col style="width: 700.0px;"/>
+  </colgroup>
+  <tbody>
+    <tr>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Topic</strong></p></th>
+      <th data-highlight-colour="#f0f1f2"><p><strong>Description</strong></p></th>
+    </tr>
+    <tr><td><p>Deployment order</p></td><td><p>{{e.g. Run db-prerequisites-<release>.sql BEFORE deploying the new code; otherwise the app fails to start because the new config keys are absent}}</p></td></tr>
+    <tr><td><p>Rollback procedure</p></td><td><p>{{e.g. Redeploy previous build; the old config key '<old.key.name>' is retained so no DB rollback is needed}}</p></td></tr>
+    <tr><td><p>Feature flag / staged rollout</p></td><td><p>{{e.g. None — change is all-or-nothing per environment}}</p></td></tr>
+    <tr><td><p>Distributed-lock impact</p></td><td><p>{{e.g. New lock names — no conflict with existing rows / leases; or "Not applicable"}}</p></td></tr>
+    <tr><td><p>Old config cleanup</p></td><td><p>{{e.g. Old key may be deleted AFTER all instances have been upgraded; do not delete during rolling deploy}}</p></td></tr>
+  </tbody>
+</table>
