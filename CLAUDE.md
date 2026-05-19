@@ -25,6 +25,7 @@ integrate-agent/ ← optional wiring guides per AI tool (Claude Code, Copilot, O
 
 | Module | Path | Purpose |
 |---|---|---|
+| ADR | `core/adr/` | Author, review, and query Architecture Decision Records |
 | FSD | `core/fsd/` | Functional Specification Document template (`FSD_TEMPLATE.md`) and review prompt |
 | BA Analysis | `core/ba-analysis/` | Extract user stories and acceptance criteria from FSD |
 | Tech Spec | `core/tech-spec/` | Generate API / Batch / DB technical specifications |

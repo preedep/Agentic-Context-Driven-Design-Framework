@@ -52,6 +52,7 @@ These replace `{{PLACEHOLDERS}}` in all `core/` prompt files.
 
 | Domain | AGENTS.md | Use When |
 |---|---|---|
+| ADR | [`adr/INDEX.md`](adr/INDEX.md) | Query or add architecture decision records |
 | Backend | [`backend/AGENTS.md`](backend/AGENTS.md) | Spring Boot code, unit tests, code review |
 | Frontend | [`frontend/AGENTS.md`](frontend/AGENTS.md) | React code, component tests, FSD specs |
 | Tech Spec | [`tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md`](tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md) | Generate API/Batch/DB specs from FSD |

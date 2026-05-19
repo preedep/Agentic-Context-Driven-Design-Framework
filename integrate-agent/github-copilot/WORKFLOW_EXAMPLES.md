@@ -291,6 +291,40 @@ Check this Step class for NFR compliance:
 Report each violation with the specific NFR rule reference.
 ```
 
+### Architecture Decision Record — Author a New ADR
+
+```
+#file:core/adr/AGENTS.md
+#file:core/adr/ADR_TEMPLATE.md
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/adr/INDEX.md
+
+Author an ADR for:
+- DECISION_TOPIC: Choice of message broker for payment event publishing
+- NEXT_ADR_ID: ADR-PAY-003
+
+Fill all sections. List at least two options with honest pros and cons.
+Save as: projects/acme-pay/adr/ADR-PAY-003-{{slug}}.md
+Then add a row to INDEX.md.
+```
+
+### Architecture Decision Record — Query Before Starting a Feature
+
+```
+#file:core/adr/AGENTS.md
+#file:core/adr/ADR_QUERY.md
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/adr/INDEX.md
+#file:projects/acme-pay/adr/ADR-PAY-001-jdbc-template-over-jpa.md
+#file:projects/acme-pay/adr/ADR-PAY-002-usecase-step-pattern.md
+
+Run ADR_QUERY for:
+- QUERY_TOPIC: database access
+- FEATURE_SLUG: payment-gateway
+
+List all applicable ADRs with their compliance checks.
+```
+
 ---
 
 ## Tips

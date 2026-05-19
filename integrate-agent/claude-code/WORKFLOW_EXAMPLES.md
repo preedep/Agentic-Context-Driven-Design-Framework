@@ -336,6 +336,57 @@ Analyse the existing production class and generate:
 Coverage target ≥ 80%. Write tests to the correct path under src/test/java/
 ```
 
+### Architecture Decision Record — Author a New ADR
+
+Use this when recording a significant architectural decision before or after it is made.
+
+```
+Read @core/adr/AGENTS.md
+Read @projects/acme-pay/AGENTS.md
+Read @projects/acme-pay/adr/INDEX.md
+
+Use @core/adr/ADR_TEMPLATE.md to author an ADR for:
+- DECISION_TOPIC: Choice of message broker for payment event publishing
+- NEXT_ADR_ID: ADR-PAY-003
+
+Fill all sections. List at least two options with honest pros and cons.
+Write output to: projects/acme-pay/adr/ADR-PAY-003-{{slug}}.md
+Then add a row to projects/acme-pay/adr/INDEX.md.
+```
+
+### Architecture Decision Record — Review a Draft ADR
+
+```
+Read @core/adr/AGENTS.md
+Read @projects/acme-pay/AGENTS.md
+Read @projects/acme-pay/adr/INDEX.md
+Read @projects/acme-pay/adr/ADR-PAY-003-{{slug}}.md
+
+Run @core/adr/ADR_REVIEW.md
+
+ADR_FILE_PATH: projects/acme-pay/adr/ADR-PAY-003-{{slug}}.md
+PROJECT_NAME: acme-pay
+
+Write review report to: projects/acme-pay/adr/ADR-PAY-003-review.md
+```
+
+### Architecture Decision Record — Query Before Starting a Feature
+
+Use this to discover which existing ADRs apply to a feature before writing the tech spec.
+
+```
+Read @core/adr/AGENTS.md
+Read @projects/acme-pay/AGENTS.md
+Read @projects/acme-pay/adr/INDEX.md
+
+Run @core/adr/ADR_QUERY.md
+
+QUERY_TOPIC: database access
+FEATURE_SLUG: payment-gateway
+
+List all applicable ADRs with their compliance checks.
+```
+
 ### Dependency Update
 
 ```

@@ -459,6 +459,78 @@ response = client.chat.completions.create(
 )
 ```
 
+### Architecture Decision Record — Author a New ADR
+
+**Chat UI — system block:**
+```
+You are an experienced software architect.
+
+ADR module rules:
+[paste content of core/adr/AGENTS.md]
+
+Project context:
+[paste content of projects/acme-pay/AGENTS.md]
+
+Existing ADRs:
+[paste content of projects/acme-pay/adr/INDEX.md]
+```
+
+**Chat UI — follow-up:**
+```
+Use the ADR_TEMPLATE to author an ADR for:
+- DECISION_TOPIC: Choice of message broker for payment event publishing
+- NEXT_ADR_ID: ADR-PAY-003
+
+Fill all sections. List at least two options with honest pros and cons.
+```
+
+**API call:**
+```python
+adr_agents = (FRAMEWORK / "core/adr/AGENTS.md").read_text()
+adr_tpl    = (FRAMEWORK / "core/adr/ADR_TEMPLATE.md").read_text()
+proj       = (FRAMEWORK / "projects/acme-pay/AGENTS.md").read_text()
+index      = (FRAMEWORK / "projects/acme-pay/adr/INDEX.md").read_text()
+
+response = client.chat.completions.create(
+    model="gpt-4o", max_tokens=4000,
+    messages=[
+        {"role": "system", "content": "\n\n".join([adr_agents, proj, index])},
+        {"role": "user",   "content": (
+            f"Use this template:\n{adr_tpl}\n\n"
+            "Author ADR-PAY-003 for: Choice of message broker for payment event publishing.\n"
+            "List at least two options with honest pros and cons."
+        )},
+    ],
+)
+Path("projects/acme-pay/adr/ADR-PAY-003-message-broker.md").write_text(
+    response.choices[0].message.content
+)
+```
+
+### Architecture Decision Record — Query Before Starting a Feature
+
+**API call:**
+```python
+adr_agents = (FRAMEWORK / "core/adr/AGENTS.md").read_text()
+adr_query  = (FRAMEWORK / "core/adr/ADR_QUERY.md").read_text()
+proj       = (FRAMEWORK / "projects/acme-pay/AGENTS.md").read_text()
+adrs       = "\n\n".join(
+    f.read_text() for f in (FRAMEWORK / "projects/acme-pay/adr").glob("ADR-*.md")
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o", max_tokens=2000,
+    messages=[
+        {"role": "system", "content": "\n\n".join([adr_agents, proj])},
+        {"role": "user",   "content": (
+            f"Existing ADRs:\n{adrs}\n\n"
+            + adr_query +
+            "\nQUERY_TOPIC: database access\nFEATURE_SLUG: payment-gateway"
+        )},
+    ],
+)
+```
+
 ### Batch Script — Generate Specs for Multiple Features
 
 ```python
