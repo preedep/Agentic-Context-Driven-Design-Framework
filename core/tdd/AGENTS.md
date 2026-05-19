@@ -27,23 +27,29 @@ Step 3: Tech Spec
      Output: api-specification.md, database-schema.md, validation-rules.md,
              error-codes.md, sequence-diagrams.md
 
-Step 4: Test Cases (TDD — write tests FIRST)
-  └─ Generate unit test cases from tech spec and acceptance criteria
-     Tool: core/unit-test/AGENTS.md
-     Output: test stubs for Controller, UseCase Impl, each Step (backend)
-             and component tests (frontend)
-     ⚠️  Tests must be written and committed BEFORE implementation code
+Step 4: Test Cases — ALL layers written together (TDD — tests FIRST)
+  ├─ Unit tests: Controller, UseCase Impl, each Step
+  │    Tool: core/unit-test/AGENTS.md
+  │    Output: *Test.java stubs — compile but FAIL (no production code yet)
+  ├─ Integration tests: Repository SQL behavior against real DB schema
+  │    Output: *RepositoryIT.java — validates queries, not mocked
+  └─ E2E acceptance tests: Playwright scripts from FSD acceptance criteria
+       Tool: core/e2e-test/ANALYZE_TEST_CASE.md → core/e2e-test/GEN_SCRIPT_FROM_TC.md
+       Output: *.spec.ts covering happy path + all error scenarios
+  ⚠️  All test files committed to the branch BEFORE any implementation code
 
-Step 5: E2E Test Cases
-  └─ Analyze FSD acceptance criteria and generate Playwright test scripts
-     Tool: core/e2e-test/ANALYZE_TEST_CASE.md → core/e2e-test/GEN_SCRIPT_FROM_TC.md
-     Output: .spec.ts files covering happy path + error scenarios
-
-Step 6: Implementation
-  └─ Write code to make the failing tests pass
-     Tool: core/developer-coding/AGENTS.md
-     Constraint: follow tech-stack patterns (Usecase → Step), NFR requirements
+Step 5: Implementation (GREEN)
+  └─ Write minimum code to make the failing unit tests pass — layer by layer
+     Tool: core/developer-coding/AGENTS.md + core/tdd/TDD_CYCLE.md
+     Constraint: follow Usecase → Step pattern, NFR requirements
      Output: Controller, UseCase, Steps, Repository, model classes
+     Gate: full test suite (unit + integration) must be green before moving on
+
+Step 6: Refactor
+  └─ Clean production code and test code without changing behavior
+     Constraint: re-run the FULL suite after every refactor — not just the changed class
+     Check: naming conventions, NFR logging fields, data masking, error message format
+     Gate: all tests still green; coverage ≥ 80% per layer maintained
 
 Step 7: Code Review
   └─ Review implementation against FSD, tech spec, and NFR
@@ -52,9 +58,10 @@ Step 7: Code Review
              structure, mapping, business logic, test coverage)
 
 Step 8: E2E Execution & Reporting
-  └─ Run Playwright tests; embed screenshots into Excel report
-     Tool: projects/{{PROJECT}}/e2e-test/{{PROJECT}}_E2E_CONFIG.md → PRE_SCRIPT_EXCEL.md
-     Output: Updated Excel test case with PASS/FAIL status and screenshots
+  └─ Run Playwright tests against SIT; embed screenshots into test report
+     Tool: projects/{{PROJECT}}/e2e-test/{{PROJECT}}_E2E_CONFIG.md
+     Output: PASS/FAIL status per acceptance criterion with screenshots
+     Note: this step runs automatically on PR merge in CI — not a manual gate
 ```
 
 ---
@@ -82,20 +89,24 @@ Step 8: E2E Execution & Reporting
 
 ### Refactor Phase — Clean Without Changing Behavior
 - Refactor production code and test code separately
-- All tests must remain green after refactoring
+- Run the **full test suite** (unit + integration) after every refactor — not just the changed class
 - Apply tech-stack patterns (Usecase → Step, JdbcTemplate, Context object)
-- Check NFR compliance: logging, data masking, error message format
+- Check NFR compliance: logging fields present, data masking applied, error messages generic
+- Verify Context field contracts: if Step A writes a field that Step B reads, a test must cover the handoff
 
 ---
 
 ## Coverage Requirements
 
-| Layer | Minimum Coverage |
-|---|---|
-| Step (unit) | ≥ 80% line coverage |
-| UseCase Impl (unit) | ≥ 80% line coverage |
-| Controller (unit) | ≥ 80% line coverage |
-| E2E (Playwright) | Happy path + all error scenarios from FSD |
+| Layer | Type | Minimum Coverage |
+|---|---|---|
+| Step | Unit | ≥ 80% line coverage |
+| UseCase Impl | Unit | ≥ 80% line coverage |
+| Controller | Unit | ≥ 80% line coverage |
+| Repository | Integration (real DB) | All query methods covered; no mock substitution |
+| E2E (Playwright) | Acceptance | Happy path + all error scenarios defined in FSD |
+
+> **Integration tests must use a real database schema** — not mocked repositories. SQL behavior (column names, null handling, edge-case data) cannot be validated by Mockito stubs. Use an in-memory DB (H2) or a test container matching the production schema.
 
 ---
 
@@ -124,8 +135,11 @@ Use the `{{FEATURE_SLUG}}` prefix in all test IDs for traceability.
 
 ## DO NOT
 
-- Do not write implementation code before test cases exist
-- Do not mock the database in unit tests if the test is validating SQL behavior — use integration tests
+- Do not write implementation code before test cases exist for all layers (unit + integration + E2E)
+- Do not mock the database for repository tests — SQL behavior requires a real schema
 - Do not write tests that only assert the test framework works (e.g., `assertEquals(1, 1)`)
 - Do not skip the Red phase — if a test passes immediately without implementation, it is not testing anything
-- Do not commit code with failing tests (unless the PR is explicitly a WIP)
+- Do not run only the changed class's tests after a refactor — always run the full suite
+- Do not commit code with failing tests (unless the PR is explicitly marked WIP)
+- Do not skip Context field contract tests — if Step A sets a field and Step B reads it, that contract needs a test
+- Do not update the spec silently — if a failing test reveals a spec error, update the FSD and record it in the revision history
