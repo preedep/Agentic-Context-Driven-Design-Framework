@@ -17,7 +17,7 @@ Spring Boot 3 / Java 17 backend following the Usecase → Step architectural pat
 | Generate unit tests | [`BE_UNIT_TEST.md`](BE_UNIT_TEST.md) |
 | Code review | [`core/code-review/REVIEW_STANDARD.md`](../../../core/code-review/REVIEW_STANDARD.md) |
 | Generate Confluence spec from code | [`core/code-to-spec/GENERATE_API_SPEC.md`](../../../core/code-to-spec/GENERATE_API_SPEC.md) |
-| Write new feature code | [`core/developer-coding/AGENTS.md`](../../../core/developer-coding/AGENTS.md) |
+| Write new feature code | [`core/java-developer-coding/AGENTS.md`](../../../core/java-developer-coding/AGENTS.md) |
 
 ---
 

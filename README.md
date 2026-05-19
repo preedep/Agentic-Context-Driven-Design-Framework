@@ -15,7 +15,7 @@ agent-framework/
 │   ├── tdd/                     # TDD workflow: Red→Green→Refactor cycle
 │   ├── unit-test/               # Unit test generation (JUnit, Playwright)
 │   ├── e2e-test/                # E2E test analysis, script generation
-│   ├── developer-coding/        # Spring Boot development coding standards
+│   ├── java-developer-coding/        # Spring Boot development coding standards
 │   ├── code-review/             # Code review standards and checklists
 │   ├── code-to-spec/            # Generate Confluence specs from source code
 │   ├── dependency-update/       # Automated Java dependency update process
@@ -275,7 +275,7 @@ The framework follows a strict **FSD → Test → Code** sequence. Each step fee
 └────────────────────────┬────────────────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────────────────┐
-│  5. Implementation core/developer-coding/AGENTS.md                  │
+│  5. Implementation core/java-developer-coding/AGENTS.md                  │
 │     (GREEN)        core/tdd/TDD_CYCLE.md                            │
 │     Write minimum code to pass all failing tests                    │
 │     Apply Usecase → Step pattern + NFR requirements                 │
@@ -312,7 +312,7 @@ The framework follows a strict **FSD → Test → Code** sequence. Each step fee
 | TDD | [`core/tdd/AGENTS.md`](core/tdd/AGENTS.md) | Run Red→Green→Refactor cycle; enforce test-first development |
 | Unit Test | [`core/unit-test/AGENTS.md`](core/unit-test/AGENTS.md) | Generate JUnit 5 backend tests or Playwright frontend tests |
 | E2E Test | [`core/e2e-test/AGENTS.md`](core/e2e-test/AGENTS.md) | Analyze test cases and generate Playwright scripts |
-| Developer Coding | [`core/developer-coding/AGENTS.md`](core/developer-coding/AGENTS.md) | Write new Spring Boot code following project standards |
+| Java Developer Coding | [`core/java-developer-coding/AGENTS.md`](core/java-developer-coding/AGENTS.md) | Write new Spring Boot code following project standards |
 | Code Review | [`core/code-review/AGENTS.md`](core/code-review/AGENTS.md) | Review a branch for performance, code smell, security, and test coverage |
 | Code to Spec | [`core/code-to-spec/AGENTS.md`](core/code-to-spec/AGENTS.md) | Generate a Confluence API spec from existing Spring Boot source code |
 | Dependency Update | [`core/dependency-update/AGENTS.md`](core/dependency-update/AGENTS.md) | Automatically update Java library versions across multiple repos |

@@ -255,7 +255,7 @@ Apply all 7 review dimensions and produce a Markdown table report.
 
 ---
 
-### Module 5 — `developer-coding` (Standards-Guided Code Generation)
+### Module 5 — `java-developer-coding` (Standards-Guided Code Generation)
 
 > Instructions are inline in AGENTS.md — no separate prompt file.
 > Load `projects/acme-pay/backend/AGENTS.md` — it defines the Usecase/Step pattern, `@Autowired`, `JdbcTemplate`, and Vavr Try conventions.

@@ -74,7 +74,7 @@ This project uses the Multi-Agent AI Automation Framework in `agent-framework/`.
 | Generate API/Batch/DB tech spec        | `agent-framework/core/tech-spec/AGENTS.md` |
 | Code review                            | `agent-framework/core/code-review/AGENTS.md` |
 | Generate spec from source code         | `agent-framework/core/code-to-spec/AGENTS.md` |
-| Developer coding standards             | `agent-framework/core/developer-coding/AGENTS.md` |
+| Java developer coding standards             | `agent-framework/core/java-developer-coding/AGENTS.md` |
 | Unit test generation                   | `agent-framework/core/unit-test/AGENTS.md` |
 | E2E test / Playwright                  | `agent-framework/core/e2e-test/AGENTS.md` |
 | Dependency update (multi-repo)         | `agent-framework/core/dependency-update/AGENTS.md` |
@@ -203,7 +203,7 @@ output/payment-gateway/review/review-report-{{TIMESTAMP}}.md
 
 ---
 
-### Module 5 — `developer-coding` (Standards-Guided Code Generation)
+### Module 5 — `java-developer-coding` (Standards-Guided Code Generation)
 
 > Instructions are inline in AGENTS.md — no separate prompt file.
 > Load `projects/acme-pay/backend/AGENTS.md` first — it defines the Usecase/Step pattern, `@Autowired`, `JdbcTemplate`, and Vavr Try conventions.
