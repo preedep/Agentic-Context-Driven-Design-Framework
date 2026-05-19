@@ -6,6 +6,24 @@ Examples use the `acme-pay` project. Replace with your own project folder name.
 
 ---
 
+## Full TDD Workflow Overview
+
+```
+Step 1: FSD                  → core/fsd/FSD_TEMPLATE.md
+Step 2: BA Analysis          → core/ba-analysis/AGENTS.md
+Step 3: Tech Spec            → core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md
+Step 4: Test Cases (RED)     → unit tests + integration tests + E2E acceptance tests
+Step 5: Implement (GREEN)    → core/tdd/TDD_CYCLE.md  [Repository → Step → UseCase → Controller]
+Step 6: Refactor             → core/tdd/TDD_CYCLE.md  [full suite must stay green]
+Step 7: Code Review          → core/code-review/REVIEW_STANDARD.md
+Step 8: E2E Execution        → projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md
+```
+
+> **Step 4 writes all test layers before any production code.**
+> E2E acceptance tests are authored alongside unit and integration tests — not after implementation.
+
+---
+
 ## Step 1 — Write or Review an FSD
 
 **Author a new FSD:**
@@ -67,6 +85,7 @@ Output format: Markdown with clear sections per user story.
 Run the tech spec router.
 Classify the FSD type (api/batch/db) and generate:
 - api-specification.md (endpoints, request/response, field mapping)
+- database-schema.md
 - validation-rules.md
 - error-codes.md (prefix: PAY)
 - sequence-diagrams.md (PlantUML)
@@ -76,7 +95,11 @@ Apply NFR rules: structured JSON logging fields, server-side data masking, gener
 
 ---
 
-## Step 4 — Generate Failing Unit Tests (RED)
+## Step 4 — Generate All Test Cases (RED)
+
+**All three layers written together — before any production code.**
+
+### 4a — Unit Tests (Controller, UseCase Impl, Steps)
 
 ```
 #file:projects/acme-pay/AGENTS.md
@@ -85,56 +108,103 @@ Apply NFR rules: structured JSON logging fields, server-side data masking, gener
 #file:output/payment-gateway/technical-spec/validation-rules.md
 #file:output/payment-gateway/technical-spec/error-codes.md
 
-Generate JUnit 5 test stubs for:
+Generate JUnit 5 unit test stubs for:
 - PaymentGatewayController
 - CreatePaymentUseCaseImpl
-- ValidatePaymentStep
-- SavePaymentStep
+- ValidatePaymentStep, SavePaymentStep, PublishPaymentEventStep
 
 Rules:
 - @ExtendWith(MockitoExtension.class) — no JUnit 4
 - Tests must compile but FAIL — no production code exists yet
 - Never mock the Context object — always instantiate with new
+- Cover Context field contracts: if a Step writes a field another Step reads, include a handoff test
 - Add traceability comment: which spec requirement each test covers
 - Coverage target ≥ 80% per class
 ```
 
+### 4b — Integration Tests (Repository layer)
+
+```
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/backend/AGENTS.md
+#file:output/payment-gateway/technical-spec/database-schema.md
+
+Generate integration test stubs for PaymentRepository:
+- Use @JdbcTest with a real H2 schema (schema.sql mirroring production)
+- Never @MockBean the datasource — SQL behavior must run against a real schema
+- Cover: all query methods, null column handling, empty result set, boundary data
+- Tests must compile but FAIL — repository class does not exist yet
+```
+
+### 4c — E2E Acceptance Tests (Playwright)
+
+```
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md
+#file:output/payment-gateway/ba/user-stories.md
+
+Generate Playwright TypeScript E2E acceptance tests for payment-gateway.
+
+- BASE_URL: https://acme-pay-sit.example.com
+- AUTH_SESSION_FILE: playwright/.auth/session.json
+- Cover every Given/When/Then scenario from user-stories.md (happy path + all error paths)
+- Tests will FAIL at runtime — the feature endpoint does not exist yet
+
+Output file: e2e/tests/payment-gateway.spec.ts
+```
+
 ---
 
-## Step 5 — Implement to Pass Tests (GREEN + REFACTOR)
+## Step 5 — Implement to Pass Tests (GREEN)
 
-**GREEN — write minimum implementation:**
+**Implement in order: Repository → Step → UseCase → Controller**
+
 ```
 #file:projects/acme-pay/AGENTS.md
 #file:projects/acme-pay/backend/AGENTS.md
 #file:core/tdd/TDD_CYCLE.md
 #file:src/test/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStepTest.java
 
-Write ValidatePaymentStep.java at:
-src/main/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStep.java
+Run TDD_CYCLE.md Phase 2 (GREEN).
 
-Write only enough code to make all tests in the test file pass.
-Follow Usecase → Step pattern from AGENTS.md.
-```
+Implement in dependency order:
+1. PaymentRepository — make integration tests green first
+2. ValidatePaymentStep, SavePaymentStep, PublishPaymentEventStep — make unit tests green
+3. CreatePaymentUseCaseImpl — make unit tests green
+4. PaymentGatewayController — make unit tests green
 
-**REFACTOR — clean without breaking tests:**
-```
-#file:core/nfr/AGENTS.md
-#file:projects/acme-pay/backend/AGENTS.md
-#file:src/main/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStep.java
-
-Review and refactor this Step class:
-- Naming conventions match AGENTS.md rules
-- Logging includes required NFR fields (event_date_time, log_type, level)
-- Error messages to client are generic — no stack traces
-- Data masking applied server-side for any account numbers in response
-
-Confirm all tests still pass after changes.
+After each layer: confirm that layer's tests are green before moving to the next.
+After all layers: run the FULL test suite (unit + integration). All must be green.
+Write only enough code to make the failing tests pass. No extra logic.
+Follow the Usecase → Step pattern from AGENTS.md.
 ```
 
 ---
 
-## Step 6 — Code Review
+## Step 6 — Refactor
+
+```
+#file:core/nfr/AGENTS.md
+#file:projects/acme-pay/backend/AGENTS.md
+#file:core/tdd/TDD_CYCLE.md
+#file:src/main/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStep.java
+
+Run TDD_CYCLE.md Phase 3 (REFACTOR).
+
+Review and refactor:
+- Naming conventions match AGENTS.md rules
+- Logging includes all 3 NFR mandatory fields (event_date_time, log_type, level)
+- Error messages to client are generic — no stack traces, no internal paths
+- Account numbers masked server-side before any response
+- Context field contracts documented — fields shared between Steps have named constants
+
+After each change: run the FULL test suite (unit + integration) — not just the changed class.
+All tests must remain green. Report final coverage per layer.
+```
+
+---
+
+## Step 7 — Code Review
 
 ```
 #file:projects/acme-pay/AGENTS.md
@@ -152,32 +222,31 @@ Produce a Markdown report covering all 7 dimensions:
 4. Structure (Usecase → Step pattern compliance)
 5. Spec-to-code mapping (every endpoint in spec is implemented)
 6. Business logic (validation rules match spec)
-7. Test coverage (≥ 80% per class, all error codes covered)
+7. Test coverage (unit ≥ 80% per class, integration covers all repository methods, E2E covers all FSD scenarios)
 ```
 
 ---
 
-## Step 7 — E2E Test Generation
+## Step 8 — E2E Execution & Reporting
 
 ```
 #file:projects/acme-pay/AGENTS.md
 #file:projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md
 #file:output/payment-gateway/ba/user-stories.md
 
-Generate Playwright TypeScript E2E tests for the payment-gateway feature.
-
+Run the Playwright E2E tests from Step 4c against SIT:
 - BASE_URL: https://acme-pay-sit.example.com
 - AUTH_SESSION_FILE: playwright/.auth/session.json
-- Cover all acceptance criteria from user-stories.md
+- FEATURE_NAME: payment-gateway
 
-Output file: e2e/tests/payment-gateway.spec.ts
+After the run: report PASS/FAIL per acceptance criterion with screenshots.
 ```
 
 ---
 
 ## Standalone Examples
 
-### Generate Spec from Existing Source Code
+### Non-TDD: Generate Spec from Existing Source Code
 
 ```
 #file:core/code-to-spec/AGENTS.md
@@ -192,7 +261,22 @@ Run GENERATE_API_SPEC for:
 Trace controller → usecase → steps and generate the API specification document.
 ```
 
-### Check NFR Compliance
+### Non-TDD: Add Tests to Existing Code
+
+```
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/backend/AGENTS.md
+#file:core/tdd/TDD_CYCLE.md
+#file:src/main/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStep.java
+
+Analyse the existing production class and generate:
+1. JUnit 5 unit tests covering happy path, each exception path, boundary values
+2. Integration test if the class accesses the database directly
+
+Coverage target ≥ 80%.
+```
+
+### Non-TDD: Check NFR Compliance
 
 ```
 #file:core/nfr/AGENTS.md
@@ -224,5 +308,5 @@ Open Copilot Edits (`⇧⌘I`), paste generated code — Copilot proposes creati
 
 **Iterative refinement:**
 ```
-The sequence diagram is missing the error path. Add a failure branch showing the exception handler.
+The integration test is missing a boundary value case for amount = 0. Add it.
 ```

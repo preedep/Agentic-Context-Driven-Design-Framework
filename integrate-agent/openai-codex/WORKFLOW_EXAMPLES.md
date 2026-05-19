@@ -6,6 +6,24 @@ Examples use the `acme-pay` project. Replace with your own project folder name a
 
 ---
 
+## Full TDD Workflow Overview
+
+```
+Step 1: FSD                  → core/fsd/FSD_TEMPLATE.md
+Step 2: BA Analysis          → core/ba-analysis/AGENTS.md
+Step 3: Tech Spec            → core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md
+Step 4: Test Cases (RED)     → unit tests + integration tests + E2E acceptance tests
+Step 5: Implement (GREEN)    → core/tdd/TDD_CYCLE.md  [Repository → Step → UseCase → Controller]
+Step 6: Refactor             → core/tdd/TDD_CYCLE.md  [full suite must stay green]
+Step 7: Code Review          → core/code-review/REVIEW_STANDARD.md
+Step 8: E2E Execution        → projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md
+```
+
+> **Step 4 writes all test layers before any production code.**
+> E2E acceptance tests are authored alongside unit and integration tests — not after implementation.
+
+---
+
 ## Step 1 — Write or Review an FSD
 
 **Chat UI — system block:**
@@ -110,9 +128,10 @@ FSD: [paste FSD content]
 Generate the full technical specification:
 1. Classify FSD type (api/batch/db)
 2. api-specification.md — endpoints, request/response models, field mapping
-3. validation-rules.md — field-level and business rules
-4. error-codes.md — new error codes using PAY prefix
-5. sequence-diagrams.md — PlantUML per operation
+3. database-schema.md — tables, columns, constraints
+4. validation-rules.md — field-level and business rules
+5. error-codes.md — new error codes using PAY prefix
+6. sequence-diagrams.md — PlantUML per operation
 
 Apply NFR rules: structured JSON logging fields, server-side account masking, generic error messages.
 ```
@@ -139,7 +158,11 @@ response = client.chat.completions.create(
 
 ---
 
-## Step 4 — Generate Failing Unit Tests (RED)
+## Step 4 — Generate All Test Cases (RED)
+
+**All three layers written together — before any production code.**
+
+### 4a — Unit Tests
 
 **Chat UI — system block:**
 ```
@@ -150,12 +173,15 @@ Project context:
 [paste content of projects/acme-pay/backend/AGENTS.md]
 
 TDD rules:
-[paste content of core/tdd/TDD_CYCLE.md — Phase 1 section only]
+[paste Phase 1a from core/tdd/TDD_CYCLE.md]
 ```
 
 **Chat UI — follow-up:**
 ```
-Generate JUnit 5 test stubs for ValidatePaymentStep.
+Generate JUnit 5 unit test stubs for:
+- PaymentGatewayController
+- CreatePaymentUseCaseImpl
+- ValidatePaymentStep, SavePaymentStep, PublishPaymentEventStep
 
 Spec reference:
 [paste content of output/payment-gateway/technical-spec/validation-rules.md]
@@ -163,14 +189,112 @@ Spec reference:
 
 Rules:
 - @ExtendWith(MockitoExtension.class) — no JUnit 4
-- Tests must compile but FAIL — production class does not exist yet
-- Never mock Context — always new CreatePaymentContext(...)
+- Tests must compile but FAIL — production classes do not exist yet
+- Never mock the Context object — always instantiate with new
+- Cover Context field contracts: if a Step writes a field another Step reads, include a handoff test
 - Add traceability comment mapping each test to a spec requirement
+```
+
+**API call:**
+```python
+proj_agents  = (FRAMEWORK / "projects/acme-pay/AGENTS.md").read_text()
+backend      = (FRAMEWORK / "projects/acme-pay/backend/AGENTS.md").read_text()
+tdd_cycle    = (FRAMEWORK / "core/tdd/TDD_CYCLE.md").read_text()
+val_rules    = Path("output/payment-gateway/technical-spec/validation-rules.md").read_text()
+error_codes  = Path("output/payment-gateway/technical-spec/error-codes.md").read_text()
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": proj_agents + "\n\n" + backend + "\n\n" + tdd_cycle},
+        {"role": "user",   "content": (
+            "Generate JUnit 5 unit test stubs for ValidatePaymentStep.\n\n"
+            f"Validation rules:\n{val_rules}\n\nError codes:\n{error_codes}"
+        )},
+    ],
+    max_tokens=6000,
+)
+```
+
+### 4b — Integration Tests (Repository)
+
+**Chat UI — follow-up:**
+```
+Generate integration test stubs for PaymentRepository.
+
+DB schema:
+[paste content of output/payment-gateway/technical-spec/database-schema.md]
+
+Rules:
+- @JdbcTest with real H2 schema (schema.sql mirroring production)
+- Never @MockBean the datasource — SQL behavior must run against a real schema
+- Cover: all query methods, null column handling, empty result set, boundary data
+- Tests must compile but FAIL — repository class does not exist yet
+```
+
+**API call:**
+```python
+db_schema = Path("output/payment-gateway/technical-spec/database-schema.md").read_text()
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": proj_agents + "\n\n" + backend},
+        {"role": "user",   "content": (
+            "Generate @JdbcTest integration test stubs for PaymentRepository.\n\n"
+            f"DB schema:\n{db_schema}\n\n"
+            "Use H2 in-memory DB. Never mock the datasource. "
+            "Cover all query methods and null/boundary cases."
+        )},
+    ],
+    max_tokens=4000,
+)
+```
+
+### 4c — E2E Acceptance Tests
+
+**Chat UI — follow-up:**
+```
+Generate Playwright TypeScript E2E acceptance tests for payment-gateway.
+
+BASE_URL: https://acme-pay-sit.example.com
+AUTH_SESSION_FILE: playwright/.auth/session.json
+
+Acceptance criteria to cover (every Given/When/Then — happy path + all error paths):
+[paste user-stories.md content]
+
+Output: e2e/tests/payment-gateway.spec.ts
+Tests will FAIL at runtime — the feature endpoint does not exist yet.
+```
+
+**API call:**
+```python
+e2e_config   = (FRAMEWORK / "projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md").read_text()
+user_stories = Path("output/payment-gateway/ba/user-stories.md").read_text()
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": proj_agents + "\n\n" + e2e_config},
+        {"role": "user",   "content": (
+            "BASE_URL: https://acme-pay-sit.example.com\n"
+            "AUTH_SESSION_FILE: playwright/.auth/session.json\n\n"
+            f"User stories (cover every Given/When/Then):\n{user_stories}\n\n"
+            "Generate the Playwright TypeScript E2E acceptance test file."
+        )},
+    ],
+    max_tokens=6000,
+)
+Path("e2e/tests/payment-gateway.spec.ts").write_text(
+    response.choices[0].message.content
+)
 ```
 
 ---
 
-## Step 5 — Implement to Pass Tests (GREEN + REFACTOR)
+## Step 5 — Implement to Pass Tests (GREEN)
+
+**Implement in order: Repository → Step → UseCase → Controller**
 
 **Chat UI — system block:**
 ```
@@ -182,30 +306,43 @@ Project context:
 [paste content of core/nfr/AGENTS.md — Sections 1 and 5 only]
 ```
 
-**Chat UI — follow-up (GREEN):**
+**Chat UI — follow-up (GREEN per layer):**
 ```
-Write ValidatePaymentStep.java to make all these tests pass:
+Implement in dependency order:
+1. PaymentRepository — write minimum code to make integration tests green
+2. ValidatePaymentStep — write minimum code to make unit tests green
+3. SavePaymentStep, PublishPaymentEventStep — same
+4. CreatePaymentUseCaseImpl — orchestrate steps; make unit tests green
+5. PaymentGatewayController — routing only; make unit tests green
 
-[paste test file content]
+For each class, write ONLY enough code to pass its tests. No extra logic.
 
-Write ONLY enough code to pass the tests. No extra logic.
-```
-
-**Chat UI — follow-up (REFACTOR):**
-```
-Refactor this implementation:
-[paste Step class]
-
-Check:
-- Naming follows AGENTS.md conventions
-- Application log entry includes event_date_time, log_type, level
-- Error messages to client are generic (no internal paths, no stack traces)
-- Account numbers masked server-side before response
+[paste the failing test file for the class being implemented]
 ```
 
 ---
 
-## Step 6 — Code Review
+## Step 6 — Refactor
+
+**Chat UI — follow-up:**
+```
+Refactor the implementation:
+[paste each production class]
+
+Check:
+- Naming follows AGENTS.md conventions
+- Application log entries include all 3 NFR mandatory fields (event_date_time, log_type, level)
+- Error messages to client are generic — no stack traces, no internal paths
+- Account numbers masked server-side before any response
+- Context field contracts documented — fields shared between Steps have named constants
+
+After each change: run the FULL test suite (unit + integration) — not just the changed class.
+All tests must remain green. Report final coverage per layer.
+```
+
+---
+
+## Step 7 — Code Review
 
 **Chat UI — system block:**
 ```
@@ -229,38 +366,100 @@ Reference spec: [paste api-specification.md]
 Produce a Markdown report covering all 7 dimensions:
 Performance, Code Smell, Security, Structure, Spec Mapping, Business Logic, Test Coverage.
 
+Test coverage dimension must check:
+- Unit ≥ 80% per class
+- Integration tests cover all repository methods (no mocked datasource)
+- E2E covers all FSD Given/When/Then scenarios
+
 [paste git diff output]
 ```
 
+**API call:**
+```python
+import subprocess
+
+review_std  = (FRAMEWORK / "core/code-review/REVIEW_STANDARD.md").read_text()
+backend_ref = (FRAMEWORK / "projects/acme-pay/backend/AGENTS.md").read_text()
+diff        = subprocess.check_output(
+    ["git", "diff", "origin/main...feature/payment-gateway"], text=True
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o", max_tokens=6000,
+    messages=[
+        {"role": "system", "content": review_std + "\n\nArchitecture:\n" + backend_ref},
+        {"role": "user",   "content": f"BRANCH: feature/payment-gateway\n\nDiff:\n{diff}"},
+    ],
+)
+Path("output/payment-gateway/review/review-report.md").write_text(
+    response.choices[0].message.content
+)
+```
+
 ---
 
-## Step 7 — E2E Test Generation
-
-**Chat UI — system block:**
-```
-You are an E2E test engineer using Playwright with TypeScript.
-
-Project context:
-[paste content of projects/acme-pay/AGENTS.md]
-[paste content of projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md]
-```
+## Step 8 — E2E Execution & Reporting
 
 **Chat UI — follow-up:**
 ```
-Generate Playwright TypeScript E2E tests for payment-gateway.
+The E2E tests from Step 4c have been run against SIT.
 
 BASE_URL: https://acme-pay-sit.example.com
-AUTH_SESSION_FILE: playwright/.auth/session.json
+RESULT_DIR: e2e/test-results/payment-gateway
 
-Acceptance criteria to cover:
-[paste user-stories.md content]
-
-Output: e2e/tests/payment-gateway.spec.ts
+Report PASS/FAIL per acceptance criterion from user-stories.md.
+Include screenshot references and a summary of failures.
 ```
 
 ---
 
-## Batch Script — Generate Specs for Multiple Features
+## Standalone Examples
+
+### Non-TDD: Generate Spec from Existing Source Code
+
+```python
+agents_md   = (FRAMEWORK / "core/code-to-spec/AGENTS.md").read_text()
+prompt_file = (FRAMEWORK / "core/code-to-spec/GENERATE_API_SPEC.md").read_text()
+controller  = Path(
+    "src/main/java/com/acme/pay/restapi/paymentgateway/controller/PaymentGatewayController.java"
+).read_text()
+
+response = client.chat.completions.create(
+    model="gpt-4o", max_tokens=8000,
+    messages=[
+        {"role": "system", "content": agents_md + "\n\n" + prompt_file},
+        {"role": "user",   "content": (
+            "HTTP_METHOD: POST\nAPI_PATH: /api/acme-pay/v1/payment/submit\n\n"
+            f"Controller:\n{controller}"
+        )},
+    ],
+)
+```
+
+### Non-TDD: Add Tests to Existing Code
+
+```python
+backend     = (FRAMEWORK / "projects/acme-pay/backend/AGENTS.md").read_text()
+tdd_cycle   = (FRAMEWORK / "core/tdd/TDD_CYCLE.md").read_text()
+step_src    = Path(
+    "src/main/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStep.java"
+).read_text()
+
+response = client.chat.completions.create(
+    model="gpt-4o", max_tokens=6000,
+    messages=[
+        {"role": "system", "content": backend + "\n\n" + tdd_cycle},
+        {"role": "user",   "content": (
+            f"Existing production class:\n{step_src}\n\n"
+            "Generate JUnit 5 unit tests covering happy path, each exception path, boundary values. "
+            "Also generate an integration test if the class accesses the database. "
+            "Coverage target ≥ 80%."
+        )},
+    ],
+)
+```
+
+### Batch Script — Generate Specs for Multiple Features
 
 ```python
 import os
