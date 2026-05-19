@@ -9,18 +9,20 @@ A structured, reusable library of AI agent definitions, prompt files, and projec
 ```
 agent-framework/
 ├── core/                        # Project-agnostic agents and prompts
+│   ├── adr/                     # Architecture Decision Records (template, review, query)
+│   ├── architecture/            # Hexagonal and Microservice pattern rules and checklists
 │   ├── fsd/                     # Functional Specification Document template and review
 │   ├── ba-analysis/             # Business analysis: user stories, acceptance criteria
 │   ├── tech-spec/               # Technical specification generation (API, Batch, DB)
 │   ├── tdd/                     # TDD workflow: Red→Green→Refactor cycle
 │   ├── unit-test/               # Unit test generation (JUnit, Playwright)
 │   ├── e2e-test/                # E2E test analysis, script generation
-│   ├── java-developer-coding/        # Spring Boot development coding standards
-│   ├── nodejs-developer-coding/      # Node.js / TypeScript / Express coding standards
+│   ├── java-developer-coding/   # Spring Boot development coding standards
+│   ├── nodejs-developer-coding/ # Node.js / TypeScript / Express coding standards
 │   ├── code-review/             # Code review standards and checklists
 │   ├── code-to-spec/            # Generate Confluence specs from source code
 │   ├── dependency-update/       # Automated Java dependency update process
-│   ├── nfr/                     # Non-Functional Requirements standards (logging, security, K8s)
+│   ├── nfr/                     # NFR: logging, OWASP Top 10 (Web + API), security, K8s
 │   └── tech-stack/              # Reference technology stack and architectural patterns
 │
 ├── projects/
@@ -79,6 +81,7 @@ graph TD
         ADR_T["adr/ADR_TEMPLATE.md"]
         ADR_R["adr/ADR_REVIEW.md"]
         ADR_Q["adr/ADR_QUERY.md"]
+        ARCH["architecture/AGENTS.md"]
         FSD["fsd/FSD_TEMPLATE.md"]
         FSD_REV["fsd/FSD_REVIEW.md"]
         BA["ba-analysis/AGENTS.md"]
@@ -97,7 +100,7 @@ graph TD
     subgraph CORE_QUALITY["core/  —  Quality & Operations"]
         REVIEW["code-review/REVIEW_STANDARD.md"]
         CODE2SPEC["code-to-spec/GENERATE_API_SPEC.md"]
-        NFR["nfr/AGENTS.md"]
+        NFR["nfr/AGENTS.md\n(OWASP Top 10 Web+API)"]
         DEPUPD["dependency-update/AGENTS.md"]
     end
 
@@ -118,12 +121,18 @@ graph TD
     TDD -->|implement GREEN| JAVA
     TDD -->|implement GREEN| NODE
 
+    ARCH -.->|layer boundary rules| JAVA
+    ARCH -.->|layer boundary rules| NODE
+    ARCH -.->|layer boundary rules| REVIEW
+
     BE_A --> REVIEW
     BE_A --> CODE2SPEC
     FE_A --> REVIEW
 
-    NFR -.->|compliance rules| TDD
-    NFR -.->|compliance rules| REVIEW
+    NFR -.->|OWASP + logging rules| TDD
+    NFR -.->|OWASP + logging rules| REVIEW
+    NFR -.->|OWASP + logging rules| JAVA
+    NFR -.->|OWASP + logging rules| NODE
 
     classDef master     fill:#1a5276,color:#fff,stroke:#154360
     classDef projectFile fill:#2471a3,color:#fff,stroke:#1a5276
@@ -133,7 +142,7 @@ graph TD
 
     class MASTER master
     class ADR_IDX,BE_A,FE_A,E2E_CFG,ROUTER projectFile
-    class ADR_T,ADR_R,ADR_Q,FSD,FSD_REV,BA,SPEC_R designCore
+    class ADR_T,ADR_R,ADR_Q,ARCH,FSD,FSD_REV,BA,SPEC_R designCore
     class TDD,UT,E2E_A,E2E_G,JAVA,NODE buildCore
     class REVIEW,CODE2SPEC,NFR,DEPUPD qualityCore
 ```
@@ -338,6 +347,8 @@ The framework follows a strict **FSD → Test → Code** sequence. Each step fee
 
 | Agent | Path | Use When |
 |---|---|---|
+| ADR | [`core/adr/AGENTS.md`](core/adr/AGENTS.md) | Author, review, or query Architecture Decision Records |
+| Architecture | [`core/architecture/AGENTS.md`](core/architecture/AGENTS.md) | Enforce Hexagonal or Microservice layer boundaries during design, coding, and review |
 | FSD | [`core/fsd/AGENTS.md`](core/fsd/AGENTS.md) | Author or review a Functional Specification Document |
 | BA Analysis | [`core/ba-analysis/AGENTS.md`](core/ba-analysis/AGENTS.md) | Transform FSD into user stories and acceptance criteria |
 | Tech Spec | [`core/tech-spec/AGENTS.md`](core/tech-spec/AGENTS.md) | Generate API, Batch, or Database technical specifications from FSD |
@@ -349,7 +360,7 @@ The framework follows a strict **FSD → Test → Code** sequence. Each step fee
 | Code Review | [`core/code-review/AGENTS.md`](core/code-review/AGENTS.md) | Review a branch for performance, code smell, security, and test coverage |
 | Code to Spec | [`core/code-to-spec/AGENTS.md`](core/code-to-spec/AGENTS.md) | Generate a Confluence API spec from existing Spring Boot source code |
 | Dependency Update | [`core/dependency-update/AGENTS.md`](core/dependency-update/AGENTS.md) | Automatically update Java library versions across multiple repos |
-| NFR | [`core/nfr/AGENTS.md`](core/nfr/AGENTS.md) | Non-Functional Requirements: logging, security, cloud-agnostic design, Kubernetes |
+| NFR | [`core/nfr/AGENTS.md`](core/nfr/AGENTS.md) | Non-Functional Requirements: logging, OWASP Top 10 (Web + API), security, Kubernetes |
 | Tech Stack | [`core/tech-stack/AGENTS.md`](core/tech-stack/AGENTS.md) | Reference architecture and technology stack patterns |
 
 ### Example Project Agents (acme-pay)

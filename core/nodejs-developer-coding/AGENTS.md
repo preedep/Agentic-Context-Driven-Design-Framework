@@ -30,6 +30,8 @@ Use this agent when you need to:
 |---|---|
 | Feature description or FSD | Yes |
 | Project AGENTS.md (project-specific overrides) | Yes |
+| `core/architecture/AGENTS.md` (layer boundary rules for the active pattern) | Recommended |
+| `core/nfr/AGENTS.md` (security controls, OWASP Top 10, logging rules) | Recommended |
 | Existing example files to mirror | Recommended |
 
 ---

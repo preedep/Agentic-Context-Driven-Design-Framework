@@ -26,6 +26,7 @@ integrate-agent/ ← optional wiring guides per AI tool (Claude Code, Copilot, O
 | Module | Path | Purpose |
 |---|---|---|
 | ADR | `core/adr/` | Author, review, and query Architecture Decision Records |
+| Architecture | `core/architecture/` | Hexagonal and Microservice pattern rules, layer boundary enforcement, review checklists |
 | FSD | `core/fsd/` | Functional Specification Document template (`FSD_TEMPLATE.md`) and review prompt |
 | BA Analysis | `core/ba-analysis/` | Extract user stories and acceptance criteria from FSD |
 | Tech Spec | `core/tech-spec/` | Generate API / Batch / DB technical specifications |
@@ -55,7 +56,10 @@ Each step's output is the next step's input. Tests are written and committed **b
 - **PII Log**: pipe-delimited, PDPA compliance, 90-day local retention, separate from ELK
 - **SOC Log**: 16-field pipe-delimited security audit log, 12-month total retention
 - **Cloud Agnostic**: adapter layer required, no direct cloud SDK calls in business logic
-- **Security**: MFA, RBAC, AES-256, TLS 1.2+, OWASP Top 10, server-side data masking
+- **Security**: MFA, RBAC, AES-256, TLS 1.2+, server-side data masking
+- **OWASP Top 10 (Web)**: A01–A10 controls mapped to required implementation rules
+- **OWASP Top 10 (API)**: API1–API10 controls for REST/GraphQL/gRPC endpoints
+- **Security Review Checklist**: 6-category checklist (auth, input, output, crypto, logging, SSRF)
 - **Kubernetes**: resource limits mandatory, liveness/readiness probes, graceful SIGTERM handling (60s)
 
 ## File Naming Conventions

@@ -38,10 +38,18 @@ These replace `{{PLACEHOLDERS}}` in all `core/` prompt files.
 
 ---
 
+## Architecture Pattern
+
+| Field | Value |
+|---|---|
+| `{{ARCHITECTURE_PATTERN}}` | `hexagonal+microservice` |
+
+Active patterns: each service is structured with Hexagonal Architecture (domain core, ports, adapters) and deployed as an independent microservice. See `core/architecture/AGENTS.md` for layer boundary rules and code review checklists.
+
 ## Architecture Decisions
 
 - All database access via `JdbcTemplate` — no JPA, no Hibernate.
-- Business logic follows **Usecase → Step** pattern: one `UseCase` class orchestrates multiple `Step` classes.
+- Business logic follows **Usecase → Step** pattern mapped to Hexagonal layers: UseCase = application port impl, Steps = domain services, Repository = driven adapter.
 - Each `Step` is independently unit-testable and receives a shared `Context` object.
 - Error codes follow format `PAY001`, `PAY002` — prefix `PAY` + 3-digit number.
 - All API responses use a common `ApiResponse<T>` wrapper.

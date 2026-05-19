@@ -195,6 +195,79 @@ spec:
 
 ---
 
+## 7. OWASP Top 10 — Web Application
+
+Apply these controls to every HTTP endpoint. Load `core/architecture/AGENTS.md` for layer-specific enforcement guidance.
+
+| # | Risk | Required Controls |
+|---|---|---|
+| A01 | **Broken Access Control** | Enforce RBAC on every endpoint; deny by default; validate ownership before returning data; no IDOR — never expose raw database IDs in URLs without authorization check |
+| A02 | **Cryptographic Failures** | TLS 1.2+ on all transport; AES-256 for data at rest; bcrypt/Argon2id for passwords; never MD5/SHA-1/DES; no secrets in code or logs |
+| A03 | **Injection** | Parameterized queries for all SQL; never string-concatenate user input into queries; validate and sanitize all inputs; use allowlists not denylists for format checks |
+| A04 | **Insecure Design** | Threat-model new features before implementation; define rate limits and abuse cases in FSD; never design "admin backdoors" or implicit trust between services |
+| A05 | **Security Misconfiguration** | Remove default accounts and unused endpoints; set security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy`); disable directory listing; review Kubernetes RBAC |
+| A06 | **Vulnerable & Outdated Components** | No EOL or unpatched dependencies in production; run dependency scanning (OWASP Dependency-Check, Snyk, Trivy) in CI; pin base image digests in Dockerfiles |
+| A07 | **Identification & Authentication Failures** | MFA for internet-facing systems; no weak credentials; new session ID on login; terminate session on logout; brute-force protection (rate limiting, lockout) |
+| A08 | **Software & Data Integrity Failures** | Verify integrity of CI/CD pipeline artifacts; pin dependency versions with lockfiles; never deserialize untrusted data without validation; sign container images |
+| A09 | **Security Logging & Monitoring Failures** | Log all auth events, access-denied, privilege changes, and critical data access to SOC Log (Section 3); ensure logs survive restarts; alert on repeated failures |
+| A10 | **Server-Side Request Forgery (SSRF)** | Validate and allowlist all outbound URLs; never pass user-supplied URLs directly to HTTP clients; block requests to internal network ranges (169.254.x.x, 10.x.x.x, 172.16–31.x.x) |
+
+---
+
+## 8. OWASP Top 10 — API Security (API Security Top 10)
+
+Apply these controls when the project exposes or consumes REST / GraphQL / gRPC APIs.
+
+| # | Risk | Required Controls |
+|---|---|---|
+| API1 | **Broken Object Level Authorization (BOLA)** | Validate that the authenticated user owns or has permission for every object returned or modified; never trust client-supplied IDs without re-checking authorization |
+| API2 | **Broken Authentication** | Short-lived JWT tokens (≤ 15 min access token); revoke tokens on logout; validate `aud`, `iss`, `exp` claims; do not accept `none` algorithm in JWT |
+| API3 | **Broken Object Property Level Authorization** | Return only fields the caller is authorized to see; use explicit response DTOs — never serialize full ORM entities |
+| API4 | **Unrestricted Resource Consumption** | Set rate limits per user/IP; paginate all list endpoints; cap file upload size; enforce query complexity limits for GraphQL |
+| API5 | **Broken Function Level Authorization** | Admin and elevated-privilege endpoints MUST be behind a separate role check; do not rely on obscurity (hidden URLs) |
+| API6 | **Unrestricted Access to Sensitive Business Flows** | Protect business-critical flows (payment submit, account creation) with rate limiting, CAPTCHA, or step-up authentication |
+| API7 | **Server-Side Request Forgery (SSRF)** | Same as A10 above — additionally validate webhook URLs and import-from-URL features |
+| API8 | **Security Misconfiguration** | Disable CORS wildcard (`*`) on APIs handling credentials; return `X-Content-Type-Options: nosniff`; do not expose Swagger/OpenAPI UI in production without authentication |
+| API9 | **Improper Inventory Management** | Maintain an API inventory; decommission deprecated API versions; do not expose internal or debug endpoints on the public network |
+| API10 | **Unsafe Consumption of APIs** | Validate and sanitize data received from external APIs before processing; do not blindly trust upstream responses |
+
+---
+
+## Security Review Checklist
+
+Use this checklist during code review (`core/code-review/REVIEW_STANDARD.md`) for any endpoint change:
+
+### Authentication & Authorization
+- [ ] Every endpoint has an explicit authorization check (role or ownership)
+- [ ] No endpoint returns data for an object the caller does not own (BOLA check)
+- [ ] JWT claims (`aud`, `iss`, `exp`) validated; `none` algorithm rejected
+
+### Input Handling
+- [ ] All SQL queries use parameterized statements — zero string concatenation
+- [ ] All user-supplied strings validated against an allowlist or sanitized before use
+- [ ] File upload validates content type, extension, and filename
+
+### Output Handling
+- [ ] Error responses are generic — no stack traces, SQL errors, or internal paths
+- [ ] Response DTO explicitly selects fields — no full entity serialization
+- [ ] Sensitive fields (account numbers, IDs) masked server-side before response
+
+### Transport & Cryptography
+- [ ] All outbound calls use TLS 1.2+
+- [ ] No deprecated algorithms (MD5, SHA-1, DES, RC4, `Math.random()` for security)
+- [ ] No secrets hardcoded or logged
+
+### Logging
+- [ ] Auth events, access-denied, and privilege changes written to SOC Log
+- [ ] No PII or financial data in application (ELK) logs
+- [ ] `correlation_id` present in all log entries
+
+### SSRF
+- [ ] No user-supplied URL passed directly to an HTTP client
+- [ ] Outbound URL allowlist enforced
+
+---
+
 ## DO NOT
 
 - Do not mix PII log entries with application (ELK) log entries
@@ -203,3 +276,7 @@ spec:
 - Do not expose stack traces or internal paths in API responses
 - Do not use deprecated cryptographic algorithms (MD5, SHA-1, DES, RC4)
 - Do not leave Kubernetes resource limits unset
+- Do not use CORS wildcard (`*`) on APIs that handle credentials or sensitive data
+- Do not trust JWT tokens without validating `aud`, `iss`, and `exp` claims
+- Do not return full ORM entities in API responses — always use explicit response DTOs
+- Do not pass user-supplied URLs to HTTP clients without allowlist validation
