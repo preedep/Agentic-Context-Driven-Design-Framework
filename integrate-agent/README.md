@@ -44,3 +44,18 @@ The integration guides in each sub-folder show exactly how to do step 1–3 in t
 | You are already in VS Code and want inline chat with codebase context | `github-copilot/` |
 | You want to automate spec generation via API in a CI/CD pipeline | `openai-codex/` |
 | You are evaluating or switching tools and need a portable baseline | `generic-llm/` |
+
+---
+
+## Consuming the Framework via Git Submodule
+
+To embed this framework in your own project repository, add it as a git submodule:
+
+```bash
+git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
+git submodule set-branch --branch main agent-framework
+git add .gitmodules agent-framework
+git commit -m "Add Agentic Context-Driven Design Framework as submodule"
+```
+
+See the [Git Submodule section in the root README](../README.md#using-this-framework-as-a-git-submodule) for the full setup guide, update instructions, and recommended directory layout.

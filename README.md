@@ -237,6 +237,72 @@ Developer/AI Tool
 
 ---
 
+## Using This Framework as a Git Submodule
+
+The recommended way to consume this framework in your own project is as a **git submodule**. This keeps the framework versioned alongside your project while letting you pull updates independently.
+
+**Repository:** `https://github.com/preedep/Agentic-Context-Driven-Design-Framework`
+
+### Add the submodule to your project
+
+```bash
+# Add under agent-framework/ (recommended path)
+git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
+
+# Pin to the stable branch
+git submodule set-branch --branch main agent-framework
+
+# Commit the submodule reference
+git add .gitmodules agent-framework
+git commit -m "Add Agentic Context-Driven Design Framework as submodule"
+```
+
+### Clone a project that already uses this submodule
+
+```bash
+# First-time clone — include submodule content
+git clone --recurse-submodules <your-project-repo>
+
+# Or, if you already cloned without --recurse-submodules
+git submodule update --init --recursive
+```
+
+### Update the framework to the latest version
+
+```bash
+git submodule update --remote agent-framework
+git add agent-framework
+git commit -m "Update agent-framework submodule to latest"
+```
+
+### Recommended `.gitmodules` entry
+
+```ini
+[submodule "agent-framework"]
+    path = agent-framework
+    url = https://github.com/preedep/Agentic-Context-Driven-Design-Framework
+    branch = main
+```
+
+### Directory layout after adding the submodule
+
+```
+your-project/
+├── agent-framework/          ← this framework (submodule)
+│   ├── core/
+│   ├── projects/
+│   ├── integrate-agent/
+│   └── shared/
+├── projects/
+│   └── <your-project>/       ← your project-specific AGENTS.md and constants
+│       └── AGENTS.md         ← references agent-framework/core/ paths
+└── src/                      ← your application source code
+```
+
+> **Tip:** Keep your real project configurations (real URLs, table names, error codes) in `projects/<your-project>/` within your own repo — never commit them to this framework repo.
+
+---
+
 ## First Time Here?
 
 **Step 1 — Choose your AI tool**
