@@ -16,6 +16,7 @@ agent-framework/
 │   ├── unit-test/               # Unit test generation (JUnit, Playwright)
 │   ├── e2e-test/                # E2E test analysis, script generation
 │   ├── java-developer-coding/        # Spring Boot development coding standards
+│   ├── nodejs-developer-coding/      # Node.js / TypeScript / Express coding standards
 │   ├── code-review/             # Code review standards and checklists
 │   ├── code-to-spec/            # Generate Confluence specs from source code
 │   ├── dependency-update/       # Automated Java dependency update process
@@ -313,6 +314,7 @@ The framework follows a strict **FSD → Test → Code** sequence. Each step fee
 | Unit Test | [`core/unit-test/AGENTS.md`](core/unit-test/AGENTS.md) | Generate JUnit 5 backend tests or Playwright frontend tests |
 | E2E Test | [`core/e2e-test/AGENTS.md`](core/e2e-test/AGENTS.md) | Analyze test cases and generate Playwright scripts |
 | Java Developer Coding | [`core/java-developer-coding/AGENTS.md`](core/java-developer-coding/AGENTS.md) | Write new Spring Boot code following project standards |
+| Node.js Developer Coding | [`core/nodejs-developer-coding/AGENTS.md`](core/nodejs-developer-coding/AGENTS.md) | Write new Node.js / TypeScript code following project standards |
 | Code Review | [`core/code-review/AGENTS.md`](core/code-review/AGENTS.md) | Review a branch for performance, code smell, security, and test coverage |
 | Code to Spec | [`core/code-to-spec/AGENTS.md`](core/code-to-spec/AGENTS.md) | Generate a Confluence API spec from existing Spring Boot source code |
 | Dependency Update | [`core/dependency-update/AGENTS.md`](core/dependency-update/AGENTS.md) | Automatically update Java library versions across multiple repos |

@@ -33,6 +33,7 @@ integrate-agent/ ← optional wiring guides per AI tool (Claude Code, Copilot, O
 | Unit Test | `core/unit-test/` | JUnit 5 + Playwright test generation |
 | E2E Test | `core/e2e-test/` | Playwright test analysis and script generation |
 | Java Developer Coding | `core/java-developer-coding/` | Spring Boot coding standards |
+| Node.js Developer Coding | `core/nodejs-developer-coding/` | Node.js / TypeScript / Express coding standards |
 | Code Review | `core/code-review/` | 7-dimension review checklist |
 | Code to Spec | `core/code-to-spec/` | Reverse-engineer spec from existing source code |
 | Dependency Update | `core/dependency-update/` | Multi-repo Maven dependency bump automation |
