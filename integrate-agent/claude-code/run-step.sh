@@ -19,6 +19,7 @@ set -euo pipefail
 # Defaults
 # ---------------------------------------------------------------------------
 FRAMEWORK_DIR="agent-framework"
+PROJECTS_DIR=""
 PROJECT=""
 FEATURE_SLUG=""
 FEATURE_NAME=""
@@ -66,6 +67,7 @@ OPTIONS:
                                  tdd    — RED→GREEN→REFACTOR: tests written before code
                                  normal — implement code directly; no RED phase test stubs
       --framework-dir <path>   Path to framework root (default: agent-framework)
+      --projects-dir <path>    Path to projects root (default: sibling projects/ of framework dir)
       --dry-run                Print the assembled prompt without running claude
   -v, --verbose                Print files being loaded
   -h, --help                   Show this help message
@@ -160,6 +162,7 @@ while [[ $# -gt 0 ]]; do
     -m|--model)          MODEL="$2";         shift 2 ;;
     --mode)              MODE="$2";          shift 2 ;;
     --framework-dir)     FRAMEWORK_DIR="$2"; shift 2 ;;
+    --projects-dir)      PROJECTS_DIR="$2";  shift 2 ;;
     --dry-run)           DRY_RUN=true;       shift ;;
     -v|--verbose)        VERBOSE=true;       shift ;;
     -h|--help)           usage; exit 0 ;;
@@ -179,7 +182,16 @@ esac
 # Resolve paths
 # ---------------------------------------------------------------------------
 FW="$FRAMEWORK_DIR"
-PROJ_DIR="$FW/projects/$PROJECT"
+# Default projects dir: sibling "projects/" next to the framework dir (or inside it as fallback)
+if [[ -z "$PROJECTS_DIR" ]]; then
+  _fw_parent="$(dirname "$FW")"
+  if [[ -d "${_fw_parent}/projects" ]]; then
+    PROJECTS_DIR="${_fw_parent}/projects"
+  else
+    PROJECTS_DIR="$FW/projects"
+  fi
+fi
+PROJ_DIR="$PROJECTS_DIR/$PROJECT"
 CORE_DIR="$FW/core"
 TODAY=$(date +%Y-%m-%d)
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -238,7 +250,7 @@ build_prompt() {
   done
 
   # Extra files
-  for xf in "${EXTRA_FILES[@]}"; do
+  for xf in "${EXTRA_FILES[@]+"${EXTRA_FILES[@]}"}"; do
     [[ -f "$xf" ]] || error "Extra file not found: $xf"
     vlog "Loading extra: $xf"
     full_prompt+="=== $(basename "$xf") ==="$'\n'"$(cat "$xf")"$'\n\n'
