@@ -491,10 +491,22 @@ Override any default with `-o/--output`.
 
 ---
 
+## Progress indicator
+
+When connected to a terminal, each step shows a spinner and elapsed time while waiting for Claude:
+
+```
+⠹ Claude is thinking...  00:23
+```
+
+The spinner is suppressed automatically when stdout/stderr is redirected (e.g. in CI pipelines), so log output stays clean.
+
+---
+
 ## CI/CD usage
 
 ```bash
-# In a pipeline — no interactive prompts
+# In a pipeline — no interactive prompts, spinner suppressed automatically
 ./run-step.sh code-review -p acme-pay -f payment-gateway \
   -o ci-artifacts/review-report.md
 ```

@@ -260,6 +260,34 @@ build_prompt() {
   echo "$full_prompt"
 }
 
+_spinner() {
+  local label="$1"
+  local pid="$2"
+  local frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  local i=0
+  local elapsed=0
+  # Only animate when connected to a terminal
+  if [[ ! -t 2 ]]; then
+    wait "$pid"
+    return $?
+  fi
+  tput civis 2>/dev/null || true  # hide cursor
+  while kill -0 "$pid" 2>/dev/null; do
+    local frame="${frames:$((i % ${#frames})):1}"
+    local mins=$(( elapsed / 60 ))
+    local secs=$(( elapsed % 60 ))
+    printf "\r\033[36m%s\033[0m %s  \033[2m%02d:%02d\033[0m" \
+      "$frame" "$label" "$mins" "$secs" >&2
+    sleep 1
+    (( i++ )) || true
+    (( elapsed++ )) || true
+  done
+  tput cnorm 2>/dev/null || true  # restore cursor
+  printf "\r\033[2K" >&2           # clear spinner line
+  wait "$pid"
+  return $?
+}
+
 run_claude() {
   local prompt="$1"
   local model_flag=""
@@ -270,7 +298,19 @@ run_claude() {
     echo "$prompt"
     echo "============================================="
   else
-    echo "$prompt" | claude -p $model_flag
+    local tmp_out tmp_err
+    tmp_out=$(mktemp)
+    tmp_err=$(mktemp)
+    # Run claude in background, capture stdout/stderr to temp files
+    echo "$prompt" | claude -p $model_flag >"$tmp_out" 2>"$tmp_err" &
+    local claude_pid=$!
+    _spinner "Claude is thinking..." "$claude_pid"
+    local exit_code=$?
+    # Flush output
+    cat "$tmp_out"
+    [[ -s "$tmp_err" ]] && cat "$tmp_err" >&2
+    rm -f "$tmp_out" "$tmp_err"
+    return $exit_code
   fi
 }
 
