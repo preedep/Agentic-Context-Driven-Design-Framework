@@ -425,3 +425,11 @@ Now generate unit tests for SavePaymentStep.
 ```
 Apply the quality checklist from @core/tdd/TDD_CYCLE.md to the output you just produced.
 ```
+
+**CI/CD mode (`claude -p`):**
+```bash
+claude -p "Read @agent-framework/projects/acme-pay/AGENTS.md and \
+@agent-framework/core/code-review/REVIEW_STANDARD.md. \
+Review branch feature/payment-gateway against \
+@output/payment-gateway/technical-spec/api-specification.md"
+```
