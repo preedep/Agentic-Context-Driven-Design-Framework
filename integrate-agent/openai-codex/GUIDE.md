@@ -130,6 +130,9 @@ You are a business analyst.
 
 Project context:
 [paste content of agent-framework/projects/acme-pay/AGENTS.md]
+
+Style reference (optional — paste an existing FSD from projects/acme-pay/fsd/ to match tone and structure):
+[paste existing FSD here, or omit]
 ```
 
 **User:**

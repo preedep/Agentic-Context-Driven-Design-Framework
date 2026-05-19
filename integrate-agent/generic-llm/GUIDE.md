@@ -117,6 +117,9 @@ Replace `acme-pay` with your own project folder name.
 
 === PROJECT CONTEXT ===
 [paste content of agent-framework/projects/acme-pay/AGENTS.md]
+
+=== STYLE REFERENCE (optional) ===
+[paste content of an existing FSD from projects/acme-pay/fsd/ to guide tone and structure]
 ```
 
 **User message:**

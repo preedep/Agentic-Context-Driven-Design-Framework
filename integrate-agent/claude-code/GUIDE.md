@@ -125,6 +125,7 @@ Replace `acme-pay` below with your own project folder name.
 ```
 Read @agent-framework/core/fsd/AGENTS.md
 Read @agent-framework/projects/acme-pay/AGENTS.md
+Read @agent-framework/projects/acme-pay/fsd/existing-feature-fsd.md   # optional: style reference
 
 Use @agent-framework/core/fsd/FSD_TEMPLATE.md to write an FSD for:
 - FEATURE_NAME: Payment Gateway
