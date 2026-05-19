@@ -60,140 +60,171 @@ When another team onboards (e.g., `projects/trade-finance/`), they copy the `pro
 
 ## Context & Navigation Map
 
-The diagram below shows how every prompt file in the framework connects. Arrows mean "load this context before running" or "routes to". Dashed arrows mean "reads for schema reference".
+The diagram below shows how the framework modules connect. Arrows mean "load this context before running" or "routes to".
 
 ```mermaid
 graph TD
     DEV([Developer / AI Tool])
-    DEV -->|every project task starts here| MASTER["projects/acme-pay/AGENTS.md\nMaster Entry Point"]
+    DEV -->|every task starts here| MASTER["projects/acme-pay/AGENTS.md\nMaster Entry Point"]
 
     subgraph PROJECT["projects/acme-pay/"]
+        MASTER --> ADR_IDX["adr/INDEX.md"]
         MASTER --> BE_A["backend/AGENTS.md"]
         MASTER --> FE_A["frontend/AGENTS.md"]
         MASTER --> E2E_CFG["e2e-test/ACMEPAY_E2E_CONFIG.md"]
         MASTER --> ROUTER["tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md"]
-
-        BE_A --> BE_UT["BE_UNIT_TEST.md"]
-
-        FE_A --> FE_UT["FE_UNIT_TEST.md"]
-        FE_A --> FE_TC["FE_TEST_CASE.md"]
-        FE_A --> FSD_SPEC["FSD_TO_SPEC.md"]
-
-        ROUTER -->|api| API["ACMEPAY_API_TECH_SPEC.md"]
-        ROUTER -->|batch| BATCH["ACMEPAY_BATCH_TECH_SPEC.md"]
-        ROUTER -->|db| DB["ACMEPAY_DATABASE_SPEC.md"]
-        ROUTER -->|sequence| PLANTUML["ACMEPAY_PLANTUML_GENERATION.md"]
-
-        API --> CONF_API["ACMEPAY_CONFLUENCE_FROM_API_TECH_SPEC.md"]
-        BATCH --> CONF_BATCH["ACMEPAY_CONFLUENCE_FROM_BATCH_TECH_SPEC.md"]
-
-        E2E_CFG --> EXCEL["PRE_SCRIPT_EXCEL.md"]
-        E2E_CFG --> PW["PRE_SCRIPT_PLAYWRIGHT.md"]
     end
 
-    subgraph CORE["core/  —  generic, no project data"]
+    subgraph CORE_DESIGN["core/  —  Design & Specification"]
+        ADR_T["adr/ADR_TEMPLATE.md"]
+        ADR_R["adr/ADR_REVIEW.md"]
+        ADR_Q["adr/ADR_QUERY.md"]
+        FSD["fsd/FSD_TEMPLATE.md"]
+        FSD_REV["fsd/FSD_REVIEW.md"]
+        BA["ba-analysis/AGENTS.md"]
+        SPEC_R["tech-spec/GENERATE_TECH_SPEC_ROUTER.md"]
+    end
+
+    subgraph CORE_BUILD["core/  —  Build & Test"]
+        TDD["tdd/TDD_CYCLE.md"]
+        UT["unit-test/AGENTS.md"]
+        E2E_A["e2e-test/ANALYZE_TEST_CASE.md"]
+        E2E_G["e2e-test/GEN_SCRIPT_FROM_TC.md"]
+        JAVA["java-developer-coding/AGENTS.md"]
+        NODE["nodejs-developer-coding/AGENTS.md"]
+    end
+
+    subgraph CORE_QUALITY["core/  —  Quality & Operations"]
         REVIEW["code-review/REVIEW_STANDARD.md"]
         CODE2SPEC["code-to-spec/GENERATE_API_SPEC.md"]
-        ANALYZE["e2e-test/ANALYZE_TEST_CASE.md"]
-        GEN["e2e-test/GEN_SCRIPT_FROM_TC.md"]
+        NFR["nfr/AGENTS.md"]
+        DEPUPD["dependency-update/AGENTS.md"]
     end
 
-    subgraph SHARED["shared/"]
-        DD["data-dictionary/datadict-acme-pay.xlsx"]
-    end
+    ADR_IDX --> ADR_Q
+    ADR_Q --> ADR_T
+    ADR_T --> ADR_R
+
+    MASTER --> FSD
+    FSD --> BA
+    BA --> SPEC_R
+    SPEC_R --> TDD
+
+    TDD -->|unit + integration tests| UT
+    TDD -->|E2E tests| E2E_G
+    E2E_CFG --> E2E_A
+    E2E_A --> E2E_G
+
+    TDD -->|implement GREEN| JAVA
+    TDD -->|implement GREEN| NODE
 
     BE_A --> REVIEW
     BE_A --> CODE2SPEC
-    E2E_CFG --> ANALYZE
-    E2E_CFG --> GEN
+    FE_A --> REVIEW
 
-    DD -.->|schema ref| API
-    DD -.->|schema ref| BATCH
-    DD -.->|schema ref| DB
+    NFR -.->|compliance rules| TDD
+    NFR -.->|compliance rules| REVIEW
 
-    classDef master    fill:#1a5276,color:#fff,stroke:#154360
-    classDef agentsFile fill:#2471a3,color:#fff,stroke:#1a5276
-    classDef promptFile fill:#5dade2,color:#fff,stroke:#2e86c1
-    classDef coreFile  fill:#27ae60,color:#fff,stroke:#1e8449
-    classDef sharedFile fill:#e67e22,color:#fff,stroke:#ca6f1e
+    classDef master     fill:#1a5276,color:#fff,stroke:#154360
+    classDef projectFile fill:#2471a3,color:#fff,stroke:#1a5276
+    classDef designCore  fill:#27ae60,color:#fff,stroke:#1e8449
+    classDef buildCore   fill:#1abc9c,color:#fff,stroke:#148f77
+    classDef qualityCore fill:#8e44ad,color:#fff,stroke:#6c3483
 
     class MASTER master
-    class BE_A,FE_A,E2E_CFG agentsFile
-    class BE_UT,FE_UT,FE_TC,FSD_SPEC,ROUTER,API,BATCH,DB,PLANTUML,CONF_API,CONF_BATCH,EXCEL,PW promptFile
-    class REVIEW,CODE2SPEC,ANALYZE,GEN coreFile
-    class DD sharedFile
+    class ADR_IDX,BE_A,FE_A,E2E_CFG,ROUTER projectFile
+    class ADR_T,ADR_R,ADR_Q,FSD,FSD_REV,BA,SPEC_R designCore
+    class TDD,UT,E2E_A,E2E_G,JAVA,NODE buildCore
+    class REVIEW,CODE2SPEC,NFR,DEPUPD qualityCore
 ```
 
 **Legend:**
-- Dark blue ([`projects/acme-pay/AGENTS.md`](projects/acme-pay/AGENTS.md)) — master entry point, always load first
-- Mid blue (AGENTS.md files) — sub-module context, load before running prompts in that domain
-- Light blue (prompt files inside `projects/acme-pay/`) — project-specific, contain hardcoded project constants
-- Green (prompt files inside `core/`) — generic, load via `projects/acme-pay/` Required Context
-- Orange (`shared/`) — schema reference, loaded on demand by tech-spec prompts
+- **Dark blue** — master entry point (`projects/acme-pay/AGENTS.md`), always load first
+- **Mid blue** — project sub-module files (backend, frontend, e2e config, ADR index)
+- **Green** — `core/` Design & Specification modules (ADR, FSD, BA Analysis, Tech Spec)
+- **Teal** — `core/` Build & Test modules (TDD cycle, unit tests, E2E, coding standards)
+- **Purple** — `core/` Quality & Operations modules (code review, code-to-spec, NFR, dependency update)
 
-### How to Read the Diagram — Worked Examples
+### How to Read the Diagram
 
-Each path through the diagram is a **loading order recipe**. Trace from top to bottom to know exactly which files to load before running a prompt.
-
----
-
-**Example 1 — Generate an API tech spec from an FSD**
-
-```
-Developer/AI Tool
-  → projects/acme-pay/AGENTS.md              (load: project URLs, error codes, Confluence space key)
-  → tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md    (run: paste FSD → router picks "api")
-  → ACMEPAY_API_TECH_SPEC.md                 (run: generates the spec)
-  → ACMEPAY_CONFLUENCE_FROM_API_TECH_SPEC.md (optional: converts spec to Confluence HTML)
-  ↙ shared/data-dictionary/datadict-acme-pay.xlsx  (loaded by the spec prompt for table/column names)
-```
-
-Files to load in order: [`projects/acme-pay/AGENTS.md`](projects/acme-pay/AGENTS.md) → [`ACMEPAY_TECH_SPEC_ROUTER.md`](projects/acme-pay/tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md) → [`ACMEPAY_API_TECH_SPEC.md`](projects/acme-pay/tech-spec/ACMEPAY_API_TECH_SPEC.md)
+Each path through the diagram is a **loading order recipe**. Trace from the master entry point down to know which files to load before running a prompt.
 
 ---
 
-**Example 2 — Generate backend unit tests**
+**Example 1 — Record an architecture decision before starting a feature**
 
 ```
 Developer/AI Tool
-  → projects/acme-pay/AGENTS.md     (load: Usecase/Step pattern, @Autowired rules, JdbcTemplate)
-  → backend/AGENTS.md               (load: Step lifecycle, Context pattern, naming rules)
-  → backend/BE_UNIT_TEST.md         (run: paste Step/Usecase class → JUnit 5 tests generated)
+  → projects/acme-pay/AGENTS.md       (load: project prefix PAY, tech stack)
+  → projects/acme-pay/adr/INDEX.md    (check: next ADR number, existing decisions)
+  → core/adr/ADR_QUERY.md             (run: find applicable ADRs for the feature area)
+  → core/adr/ADR_TEMPLATE.md          (run: author new ADR if none covers this decision)
+  → core/adr/ADR_REVIEW.md            (run: quality-check the draft before marking Accepted)
 ```
-
-Files to load in order: [`projects/acme-pay/AGENTS.md`](projects/acme-pay/AGENTS.md) → [`backend/AGENTS.md`](projects/acme-pay/backend/AGENTS.md) → [`BE_UNIT_TEST.md`](projects/acme-pay/backend/BE_UNIT_TEST.md)
 
 ---
 
-**Example 3 — Review a code branch (uses a core/ prompt via project context)**
+**Example 2 — Full TDD workflow: FSD → working code**
 
 ```
 Developer/AI Tool
-  → projects/acme-pay/AGENTS.md                (load: project architecture, critical overrides)
-  → backend/AGENTS.md                          (load: Usecase/Step standards for the reviewer)
-  → core/code-review/REVIEW_STANDARD.md        (run: generic review checklist, now project-aware)
+  → projects/acme-pay/AGENTS.md                    (load: all project constants)
+  → core/fsd/FSD_TEMPLATE.md                       (step 1: author FSD)
+  → core/ba-analysis/AGENTS.md                     (step 2: extract user stories)
+  → core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md    (step 3: generate API/DB/batch spec)
+  → core/tdd/TDD_CYCLE.md  Phase 1 (RED)           (step 4: write unit + integration + E2E tests)
+  → core/tdd/TDD_CYCLE.md  Phase 2 (GREEN)         (step 5: implement Repository → Step → UseCase → Controller)
+  → core/tdd/TDD_CYCLE.md  Phase 3 (REFACTOR)      (step 6: clean up, full suite must stay green)
+  → core/code-review/REVIEW_STANDARD.md            (step 7: 7-dimension review)
+  → projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md (step 8: run Playwright E2E against SIT)
 ```
-
-Notice: the green `core/` box is reached through the mid-blue `backend/AGENTS.md` — not directly. The project context loaded earlier is what makes the generic prompt produce project-correct output.
-
-Files to load in order: [`projects/acme-pay/AGENTS.md`](projects/acme-pay/AGENTS.md) → [`backend/AGENTS.md`](projects/acme-pay/backend/AGENTS.md) → [`core/code-review/REVIEW_STANDARD.md`](core/code-review/REVIEW_STANDARD.md)
 
 ---
 
-**Example 4 — Set up Playwright and generate an E2E test script**
+**Example 3 — Implement a feature (Java Spring Boot)**
 
 ```
 Developer/AI Tool
-  → projects/acme-pay/AGENTS.md              (load: project URLs, auth flow, feature routes)
-  → e2e-test/ACMEPAY_E2E_CONFIG.md           (load: Playwright config, MUI locators, session setup)
-  → PRE_SCRIPT_PLAYWRIGHT.md                 (run: generates playwright.config.ts + auth.setup.ts)
-    — then —
-  → core/e2e-test/ANALYZE_TEST_CASE.md       (run: enrich Excel test case with Data Test / Test Gap / Test Step)
-  → core/e2e-test/GEN_SCRIPT_FROM_TC.md      (run: generate .spec.ts from enriched Excel)
-  → PRE_SCRIPT_EXCEL.md                      (run: embed screenshots + PASS/FAIL status into Excel)
+  → projects/acme-pay/AGENTS.md            (load: package root, error codes, JdbcTemplate rule)
+  → projects/acme-pay/backend/AGENTS.md    (load: Usecase → Step pattern, Context contracts)
+  → core/java-developer-coding/AGENTS.md  (load: coding standards, DI, logging, formatting)
+  → core/tdd/TDD_CYCLE.md  Phase 2        (run: implement to make failing tests green)
 ```
 
-Files to load in order: [`projects/acme-pay/AGENTS.md`](projects/acme-pay/AGENTS.md) → [`ACMEPAY_E2E_CONFIG.md`](projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md) → then the specific script prompt
+---
+
+**Example 4 — Implement a feature (Node.js / TypeScript)**
+
+```
+Developer/AI Tool
+  → projects/acme-pay/AGENTS.md              (load: project constants)
+  → projects/acme-pay/backend/AGENTS.md      (load: architectural constraints)
+  → core/nodejs-developer-coding/AGENTS.md  (load: coding standards, zod, Jest, Prettier)
+  → core/tdd/TDD_CYCLE.md  Phase 2          (run: implement to make failing tests green)
+```
+
+---
+
+**Example 5 — Generate an E2E test script from acceptance criteria**
+
+```
+Developer/AI Tool
+  → projects/acme-pay/AGENTS.md                 (load: BASE_URL, auth session path)
+  → projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md  (load: Playwright config, locators)
+  → core/e2e-test/ANALYZE_TEST_CASE.md          (run: enrich test cases with steps and data)
+  → core/e2e-test/GEN_SCRIPT_FROM_TC.md         (run: generate .spec.ts from enriched test cases)
+```
+
+---
+
+**Example 6 — Reverse-engineer a spec from existing source code**
+
+```
+Developer/AI Tool
+  → projects/acme-pay/AGENTS.md            (load: API base path, error code prefix)
+  → projects/acme-pay/backend/AGENTS.md    (load: Usecase/Step pattern for tracing)
+  → core/code-to-spec/GENERATE_API_SPEC.md (run: trace controller → usecase → steps → generate spec)
+```
 
 ---
 
