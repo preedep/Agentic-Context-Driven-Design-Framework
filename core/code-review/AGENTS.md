@@ -52,6 +52,16 @@ Use this agent when you need to:
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{BRANCH_NAME}}` | Yes | Git branch name to review | `feature/payment-gateway` |
+| `{{SPEC_FILE}}` | Yes | Path to the reference spec `.md` file used for mapping validation | `output/payment-gateway/technical-spec/api-specification.md` |
+| `{{PROJECT_NAME}}` | Yes | kebab-case project folder name; used for report output path | `acme-pay` |
+
+---
+
 ## How to Invoke
 
 ```

@@ -72,6 +72,24 @@ Every FSD MUST contain these sections. Use `{{PLACEHOLDER}}` for all project-spe
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{PROJECT_NAME}}` | Yes | kebab-case folder name under `projects/` | `acme-pay` |
+| `{{FEATURE_NAME}}` | Yes | Human-readable feature title | `Payment Gateway` |
+| `{{FEATURE_SLUG}}` | Yes | kebab-case, used in file names and API paths | `payment-gateway` |
+| `{{MODULE_NAME}}` | Yes | Service or module this feature belongs to | `acme-pay` |
+| `{{VERSION}}` | Yes | Semantic version string | `1.0` |
+| `{{STATUS}}` | Yes | `Draft` \| `In Review` \| `Approved` | `Draft` |
+| `{{AUTHOR}}` | Yes | Full name or team name of the author | `Jane Smith` |
+| `{{DATE}}` | Yes | ISO 8601 `YYYY-MM-DD` | `2026-05-19` |
+| `{{HTTP_METHOD}}` | Yes | `GET` \| `POST` \| `PUT` \| `PATCH` \| `DELETE` | `POST` |
+| `{{API_PATH}}` | Yes | URL path starting with `/api/` | `/api/acme-pay/v1/payment/submit` |
+| `{{AUTH_METHOD}}` | Yes | `Bearer JWT` \| `API Key` \| `OAuth2` \| `None` | `Bearer JWT` |
+
+---
+
 ## Quality Checklist
 
 Before an FSD exits this stage and enters the workflow, verify:

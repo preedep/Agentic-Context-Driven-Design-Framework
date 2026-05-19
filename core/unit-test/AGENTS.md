@@ -45,6 +45,19 @@ Use this agent when you need to:
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{PROJECT}}` | Yes | kebab-case project folder name; used in path construction | `acme-pay` |
+| `{{BASE_URL}}` | Yes | Full HTTPS URL of the target environment | `https://acme-pay-sit.example.com` |
+| `{{BASE_PACKAGE}}` | Yes | Java base package path | `com.acme.pay.restapi` |
+| `{{TARGET_CLASS}}` | Yes | Simple class name of the Step, UseCase, or Controller under test | `ValidatePaymentStep` |
+| `{{FEATURE_SLUG}}` | Yes | kebab-case feature identifier; used as test ID prefix | `payment-gateway` |
+| `{{AUTH_SESSION_FILE}}` | Yes (frontend) | Relative path to Playwright auth session JSON | `playwright/.auth/session.json` |
+
+---
+
 ## Outputs
 
 ### Backend Unit Tests

@@ -51,6 +51,18 @@ Use this agent when you need to:
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{PROJECT_NAME}}` | Yes | kebab-case folder name under `projects/` | `acme-pay` |
+| `{{FEATURE_SLUG}}` | Yes | kebab-case feature identifier | `payment-gateway` |
+| `{{TERM}}` | Yes (glossary) | Domain-specific term being defined | `Payment Reference` |
+| `{{DEFINITION}}` | Yes (glossary) | Plain-English definition of the term | `Unique identifier assigned to each payment transaction` |
+| `{{QUESTION}}` | Yes (open questions) | Unresolved question requiring stakeholder answer | `What is the maximum payment amount per transaction?` |
+
+---
+
 ## Process Steps
 
 ### Step 1 — Read the Requirement Document

@@ -26,12 +26,12 @@ Load this module when you need to:
 
 ---
 
-## Inputs
+## Placeholder Reference
 
-| Placeholder | Required | Description | Example |
+| Placeholder | Required | Possible Values / Format | Example |
 |---|---|---|---|
-| `{{ARCHITECTURE_PATTERN}}` | Yes | Active pattern for this project | `hexagonal` \| `microservice` \| `hexagonal+microservice` |
-| `{{PROJECT_NAME}}` | Yes | Project folder name | `acme-pay` |
+| `{{PROJECT_NAME}}` | Yes | kebab-case folder name under `projects/` | `acme-pay` |
+| `{{ARCHITECTURE_PATTERN}}` | Yes | `hexagonal` — Ports & Adapters, domain core has zero framework imports<br>`microservice` — independently deployed services, DB-per-service<br>`hexagonal+microservice` — each microservice is internally structured with Hexagonal; both checklists apply | `hexagonal+microservice` |
 
 ---
 

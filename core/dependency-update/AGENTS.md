@@ -33,6 +33,18 @@ Use this agent when you need to:
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{GITLAB_TOKEN}}` | Yes | Git personal access token with `read_repository` + `write_repository` scopes; set as env var `GIT_TOKEN` — never hardcoded | `glpat-xxxxxxxxxxxxxxxxxxxx` |
+| `{{TARGET_REPOS}}` | Yes | YAML list of repository SSH or HTTPS URLs to update | `[git@github.com:org/acme-pay-backend.git, git@github.com:org/acme-pay-bff.git]` |
+| `{{LIBRARY}}` | Yes | Maven `artifactId` or `groupId:artifactId` of the dependency to update | `spring-boot-starter-parent`, `com.fasterxml.jackson.core:jackson-databind` |
+| `{{NEW_VERSION}}` | Yes | Target version string in Maven format | `3.5.0`, `2.15.2` |
+| `{{BRANCH_PREFIX}}` | Optional | Git branch name prefix for the update PR; default `deps/update-` | `deps/update-`, `chore/bump-` |
+
+---
+
 ## Outputs
 
 | Output | Description |

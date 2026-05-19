@@ -83,6 +83,22 @@ When adding an ADR to a project, check the existing ADRs folder and increment fr
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{PROJECT_NAME}}` | Yes | kebab-case folder name under `projects/` | `acme-pay` |
+| `{{PROJECT_PREFIX}}` | Yes | UPPER short code declared in project `AGENTS.md` | `PAY` |
+| `{{ADR_NUMBER}}` | Yes | 3-digit zero-padded integer; increment from highest in `INDEX.md` | `003` |
+| `{{slug}}` | Yes | kebab-case summary of the decision, used in the filename | `jdbc-template-over-jpa` |
+| `{{FEATURE_SLUG}}` | Conditional | kebab-case feature identifier; required when querying ADRs for a feature | `payment-gateway` |
+| `{{ADR_FILE_PATH}}` | Yes (review only) | Relative path to the draft ADR | `projects/acme-pay/adr/ADR-PAY-003-message-broker.md` |
+| `{{ADR_ID}}` | Yes (review only) | Full ADR identifier `ADR-PREFIX-NNN` | `ADR-PAY-003` |
+| `{{QUERY_TOPIC}}` | Yes (query only) | Free text — area of interest to search | `database access`, `authentication`, `error handling` |
+| `{{DATE}}` | Yes | ISO 8601 `YYYY-MM-DD` | `2026-05-19` |
+
+---
+
 ## Outputs
 
 | Output | Location |

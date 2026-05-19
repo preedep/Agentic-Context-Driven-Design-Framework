@@ -50,6 +50,19 @@ Use this agent when you need to:
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{BASE_URL}}` | Yes | Full HTTPS URL of the target environment; declared in project `AGENTS.md` | `https://acme-pay-sit.example.com` |
+| `{{AUTH_SESSION_FILE}}` | Yes | Relative path to Playwright auth session JSON file | `playwright/.auth/session.json` |
+| `{{FOLDER_NAME}}` | Yes | Output folder name for test results; typically matches the feature slug | `payment-gateway` |
+| `{{EXCEL_FILE}}` | Yes | Relative path to the Excel test case file | `e2e/test-cases/payment-gateway.xlsx` |
+| `{{TC_NAME}}` | Yes | Test case name from the Excel sheet; becomes the Playwright `test()` name | `TC_PAY_001_Submit_Payment_Success` |
+| `{{PROJECT}}` | Yes | Project name prefix used in path construction | `acme-pay` |
+
+---
+
 ## Dependencies
 
 - Access to the Excel test case file

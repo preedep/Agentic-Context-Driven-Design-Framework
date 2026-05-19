@@ -18,14 +18,17 @@
 
 ---
 
-## Inputs
+## Placeholder Reference
 
-| Input | Required |
-|---|---|
-| `{{FEATURE_SLUG}}` | Yes — e.g., `payment-gateway` |
-| `{{TARGET_CLASS}}` | Yes — e.g., `ValidatePaymentStep` or `CreatePaymentUseCaseImpl` |
-| `{{TEST_ROOT}}` | Yes — e.g., `src/test/java/{{BASE_PACKAGE}}` |
-| `{{SOURCE_ROOT}}` | Yes — e.g., `src/main/java/{{BASE_PACKAGE}}` |
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{PROJECT_NAME}}` | Yes | kebab-case folder name under `projects/` | `acme-pay` |
+| `{{FEATURE_SLUG}}` | Yes | kebab-case feature identifier; used as test ID prefix and output folder | `payment-gateway`, `refund-processing` |
+| `{{TARGET_CLASS}}` | Yes | Simple Java class name of the unit being implemented or tested | `ValidatePaymentStep`, `CreatePaymentUseCaseImpl`, `PaymentGatewayController` |
+| `{{TEST_ROOT}}` | Yes | Path to the test source root including base package | `src/test/java/com/acme/pay/restapi` |
+| `{{SOURCE_ROOT}}` | Yes | Path to the main source root including base package | `src/main/java/com/acme/pay/restapi` |
+| `{{BASE_PACKAGE}}` | Yes | Java base package declared in project `AGENTS.md` | `com.acme.pay.restapi` |
+| `{{Feature}}` | Yes | PascalCase feature name used in Context class naming | `Payment`, `Refund` |
 
 ---
 

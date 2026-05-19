@@ -34,6 +34,18 @@ Use this agent when you need to:
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{PROJECT}}` | Yes | kebab-case project name; used in API path construction | `acme-pay` |
+| `{{HTTP_METHOD}}` | Yes | `GET` \| `POST` \| `PUT` \| `PATCH` \| `DELETE` | `POST` |
+| `{{API_PATH}}` | Yes | Full URL path starting with `/api/` | `/api/acme-pay/v1/payment/submit` |
+| `{{ARCHITECTURE_PATTERN}}` | Yes | `hexagonal` \| `microservice` \| `hexagonal+microservice` \| `usecase-step` (default Spring Boot pattern) | `usecase-step` |
+| `{{CURRENT_DATE}}` | Yes | ISO 8601 `YYYY-MM-DD` | `2026-05-19` |
+
+---
+
 ## Outputs
 
 | Output | Description |

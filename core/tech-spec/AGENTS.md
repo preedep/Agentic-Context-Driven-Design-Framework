@@ -46,6 +46,21 @@ Use this agent when you need to:
 
 | Output | Description |
 |---|---|
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{feature-slug}}` | Yes | kebab-case feature identifier; becomes the output folder name and file prefix | `payment-gateway`, `refund-processing` |
+| `{{CURRENT_DATE}}` | Yes | ISO 8601 `YYYY-MM-DD` | `2026-05-19` |
+| `{{CONFLUENCE_SPACE}}` | Conditional | Confluence space key; required only when auto-upload is enabled | `ACMEPAY` |
+| `{{CONFLUENCE_PARENT_PAGE_ID}}` | Conditional | Numeric Confluence page ID of the parent page | `123456789` |
+
+---
+
+## Outputs
+
+| Output | Description |
+|---|---|
 | `output/{{feature-slug}}/technical-spec/README.md` | Module overview, all operations |
 | `output/{{feature-slug}}/technical-spec/database-schema.md` | DDL, entity classes, RowMapper |
 | `output/{{feature-slug}}/technical-spec/api-specification.md` | All endpoints, request/response, SQL |

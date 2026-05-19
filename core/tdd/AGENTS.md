@@ -74,6 +74,19 @@ Step 8: E2E Execution & Reporting
 
 ---
 
+## Placeholder Reference
+
+| Placeholder | Required | Possible Values / Format | Example |
+|---|---|---|---|
+| `{{PROJECT}}` | Yes | kebab-case project folder name under `projects/` | `acme-pay` |
+| `{{FEATURE_SLUG}}` | Yes | kebab-case feature identifier; used as test ID prefix and output folder | `payment-gateway` |
+| `{{TARGET_CLASS}}` | Yes | Simple class name of the Step, UseCase, or Controller being implemented | `ValidatePaymentStep`, `CreatePaymentUseCaseImpl` |
+| `{{TEST_ROOT}}` | Yes | Absolute or relative path to the test source root | `src/test/java/com/acme/pay/restapi` |
+| `{{SOURCE_ROOT}}` | Yes | Absolute or relative path to the main source root | `src/main/java/com/acme/pay/restapi` |
+| `{{BASE_PACKAGE}}` | Yes | Java base package path matching the project's package root | `com.acme.pay.restapi` |
+
+---
+
 ## TDD Rules
 
 ### Red Phase — Write Failing Tests First
