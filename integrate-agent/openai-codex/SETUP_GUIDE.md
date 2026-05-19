@@ -23,7 +23,7 @@ The framework is in the same repo. Python scripts resolve `agent-framework/` as 
 your-project/
 ├── agent-framework/
 │   ├── core/
-│   └── projects/rems/
+│   └── projects/acme-pay/
 ├── src/
 └── scripts/
     └── run_agent.py          ← FRAMEWORK_ROOT = Path("agent-framework")
@@ -138,9 +138,7 @@ def fill_prompt(template_path: str, values: dict) -> str:
 
 ## How to Trigger Each Core Module
 
-> **`core/` vs `projects/rems/`** — Use `projects/rems/*` prompt files for all actual REMS work.
-> The `core/` modules are generic templates for building new project adapters.
-> REMS has its own prompt files for tech-spec, unit-test, and e2e-test that include REMS-specific rules.
+> Always load `projects/<name>/AGENTS.md` first — it provides the package root, error code prefix, API base path, and naming conventions that every prompt depends on.
 
 ---
 
@@ -156,7 +154,7 @@ System (paste at top of new conversation):
 
 User:
 Run the 6 Process Steps against this requirement document.
-Project context: REMS — Spring Boot backend, React 18 frontend.
+Project context: acme-pay — Spring Boot backend, React 18 frontend.
 
 FSD:
 [paste FSD content]
@@ -168,58 +166,51 @@ Produce: user-stories.md, data-flow.md, glossary.md, open-questions.md
 
 ```python
 agents_md = (FRAMEWORK_ROOT / "core/ba-analysis/AGENTS.md").read_text()
-fsd       = Path("docs/fsd-block-word.md").read_text()
+fsd       = Path("projects/acme-pay/fsd/payment-gateway-fsd.md").read_text()
 
 result = client.chat.completions.create(
     model="gpt-4o",
     messages=[
         {"role": "system", "content": agents_md},
-        {"role": "user",   "content": f"Project: REMS\nFSD:\n{fsd}\n\nRun Steps 1–6. Produce all 4 output documents."},
+        {"role": "user",   "content": f"Project: acme-pay\nFSD:\n{fsd}\n\nRun Steps 1–6. Produce all 4 output documents."},
     ],
     max_tokens=8000,
 )
-save_output(result.choices[0].message.content, "output/block-word/ba/analysis.md")
+save_output(result.choices[0].message.content, "output/payment-gateway/ba/analysis.md")
 ```
 
 ---
 
 ### Module 2 — `tech-spec` (FSD → Technical Specification)
 
-> **REMS:** Use `projects/rems/tech-spec/REMS_API_TECH_SPEC.md` (or BATCH / DATABASE variant).
-> The `core/` router is for non-REMS projects only.
-
 **Chat UI:**
 
 ```
 System:
-[paste content of agent-framework/projects/rems/AGENTS.md]
-[paste content of agent-framework/projects/rems/tech-spec/REMS_API_TECH_SPEC.md]
+[paste content of agent-framework/projects/acme-pay/AGENTS.md]
+[paste content of agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md]
 
 User:
-FEATURE_NAME: block-word
-HTTP_METHOD: POST
-API_PATH: /api/rems-parameterandconfig/v1/block-word/search
-CURRENT_DATE: 2026-04-30
+FEATURE_SLUG: payment-gateway
+CURRENT_DATE: 2026-05-19
 
 FSD:
 [paste FSD content]
 
-Generate the full REMS API technical specification section by section.
+Generate the full technical specification section by section.
 ```
 
 **API:**
 
 ```python
-agents_md   = (FRAMEWORK_ROOT / "projects/rems/AGENTS.md").read_text()
-rems_prompt = (FRAMEWORK_ROOT / "projects/rems/tech-spec/REMS_API_TECH_SPEC.md").read_text()
-fsd         = Path("docs/fsd-block-word.md").read_text()
+agents_md   = (FRAMEWORK_ROOT / "projects/acme-pay/AGENTS.md").read_text()
+spec_router = (FRAMEWORK_ROOT / "core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md").read_text()
+fsd         = Path("projects/acme-pay/fsd/payment-gateway-fsd.md").read_text()
 
-system = f"{agents_md}\n\n{rems_prompt}"
+system = f"{agents_md}\n\n{spec_router}"
 user   = (
-    "FEATURE_NAME: block-word\n"
-    "HTTP_METHOD: POST\n"
-    "API_PATH: /api/rems-parameterandconfig/v1/block-word/search\n"
-    "CURRENT_DATE: 2026-04-30\n\n"
+    "FEATURE_SLUG: payment-gateway\n"
+    "CURRENT_DATE: 2026-05-19\n\n"
     f"FSD:\n{fsd}"
 )
 
@@ -231,7 +222,7 @@ result = client.chat.completions.create(
     ],
 )
 save_output(result.choices[0].message.content,
-            "output/block-word/technical-spec/api-specification.md")
+            "output/payment-gateway/technical-spec/api-specification.md")
 ```
 
 ---
@@ -246,8 +237,8 @@ System:
 [paste content of agent-framework/core/code-to-spec/GENERATE_API_SPEC.md]
 
 User:
-HTTP_METHOD: GET
-API_PATH: /api/rems-parameterandconfig/v1/block-word/search
+HTTP_METHOD: POST
+API_PATH: /api/acme-pay/v1/payment/submit
 SOURCE_ROOT: src/main/java
 
 Controller source:
@@ -267,10 +258,10 @@ Trace the call chain and generate the API specification document.
 ```python
 agents_md    = (FRAMEWORK_ROOT / "core/code-to-spec/AGENTS.md").read_text()
 prompt_file  = (FRAMEWORK_ROOT / "core/code-to-spec/GENERATE_API_SPEC.md").read_text()
-controller   = Path("src/main/java/th/co/scb/rems/restapi/controller/RemsParameterAndConfigController.java").read_text()
+controller   = Path("src/main/java/com/acme/pay/restapi/paymentgateway/controller/PaymentGatewayController.java").read_text()
 
-user = f"""HTTP_METHOD: GET
-API_PATH: /api/rems-parameterandconfig/v1/block-word/search
+user = f"""HTTP_METHOD: POST
+API_PATH: /api/acme-pay/v1/payment/submit
 
 Controller:
 {controller}
@@ -284,7 +275,7 @@ result = client.chat.completions.create(
     ],
 )
 save_output(result.choices[0].message.content,
-            "output/block-word/technical-spec/api-specification.md")
+            "output/payment-gateway/technical-spec/api-specification.md")
 ```
 
 ---
@@ -299,13 +290,13 @@ You are a senior Java code reviewer.
 [paste content of agent-framework/core/code-review/REVIEW_STANDARD.md]
 
 Architecture context:
-[paste content of agent-framework/projects/rems/backend/AGENTS.md]
+[paste content of agent-framework/projects/acme-pay/backend/AGENTS.md]
 
 User:
-BRANCH_NAME: feature/block-word-search
+BRANCH_NAME: feature/payment-gateway
 
 Git diff:
-[paste output of: git diff origin/main...feature/block-word-search]
+[paste output of: git diff origin/main...feature/payment-gateway]
 
 Produce a report covering all 7 review dimensions in a Markdown table.
 ```
@@ -316,9 +307,9 @@ Produce a report covering all 7 review dimensions in a Markdown table.
 import subprocess
 
 review_std  = (FRAMEWORK_ROOT / "core/code-review/REVIEW_STANDARD.md").read_text()
-backend_ref = (FRAMEWORK_ROOT / "projects/rems/backend/AGENTS.md").read_text()
+backend_ref = (FRAMEWORK_ROOT / "projects/acme-pay/backend/AGENTS.md").read_text()
 diff        = subprocess.check_output(
-    ["git", "diff", "origin/main...feature/block-word-search"],
+    ["git", "diff", "origin/main...feature/payment-gateway"],
     text=True
 )
 
@@ -326,11 +317,11 @@ result = client.chat.completions.create(
     model="gpt-4o", max_tokens=6000,
     messages=[
         {"role": "system", "content": review_std + "\n\nArchitecture:\n" + backend_ref},
-        {"role": "user",   "content": f"BRANCH: feature/block-word-search\n\nDiff:\n{diff}"},
+        {"role": "user",   "content": f"BRANCH: feature/payment-gateway\n\nDiff:\n{diff}"},
     ],
 )
 save_output(result.choices[0].message.content,
-            "output/block-word/review/review-report-2026-04-30.md")
+            "output/payment-gateway/review/review-report-2026-05-19.md")
 ```
 
 ---
@@ -338,21 +329,21 @@ save_output(result.choices[0].message.content,
 ### Module 5 — `developer-coding` (Standards-Guided Code Generation)
 
 > Instructions are inline in AGENTS.md — no separate prompt file.
-> Load `projects/rems/backend/AGENTS.md` — it overrides generic rules with REMS-specific ones (`@Autowired`, `JdbcTemplate`, `@PostMapping`, Vavr Try, etc.).
+> Load `projects/acme-pay/backend/AGENTS.md` — it defines the Usecase/Step pattern, `@Autowired`, `JdbcTemplate`, and Vavr Try conventions.
 
 **Chat UI:**
 
 ```
 System:
 You are a Java Spring Boot developer.
-[paste content of agent-framework/projects/rems/AGENTS.md]
-[paste content of agent-framework/projects/rems/backend/AGENTS.md]
+[paste content of agent-framework/projects/acme-pay/AGENTS.md]
+[paste content of agent-framework/projects/acme-pay/backend/AGENTS.md]
 
 User:
-Implement a new POST endpoint. (All REMS endpoints use POST — never GET, PUT, DELETE)
-API_PATH: /api/rems-parameterandconfig/v1/block-word/search
+Implement a new POST endpoint:
+API_PATH: /api/acme-pay/v1/payment/submit
 HTTP_METHOD: POST
-Request fields: keyword (String), pageNo (int), pageSize (int), accessFunction (String)
+Request fields: accountNumber (String), amount (BigDecimal), currency (String), reference (String)
 
 Generate all layers: Controller method, Usecase interface + impl, Context, Steps, Service, Repository, Entity, Mapper, DTOs.
 Follow the Usecase/Step pattern with @Autowired, NamedParameterJdbcTemplate, Vavr Try.
@@ -361,16 +352,16 @@ Follow the Usecase/Step pattern with @Autowired, NamedParameterJdbcTemplate, Vav
 **API:**
 
 ```python
-rems_main    = (FRAMEWORK_ROOT / "projects/rems/AGENTS.md").read_text()
-rems_backend = (FRAMEWORK_ROOT / "projects/rems/backend/AGENTS.md").read_text()
+acme_main    = (FRAMEWORK_ROOT / "projects/acme-pay/AGENTS.md").read_text()
+acme_backend = (FRAMEWORK_ROOT / "projects/acme-pay/backend/AGENTS.md").read_text()
 
 result = client.chat.completions.create(
     model="gpt-4o", max_tokens=8000,
     messages=[
-        {"role": "system", "content": rems_main + "\n\n" + rems_backend},
+        {"role": "system", "content": acme_main + "\n\n" + acme_backend},
         {"role": "user",   "content": (
-            "Implement POST /api/rems-parameterandconfig/v1/block-word/search\n"
-            "Request fields: keyword, pageNo, pageSize, accessFunction\n"
+            "Implement POST /api/acme-pay/v1/payment/submit\n"
+            "Request fields: accountNumber, amount, currency, reference\n"
             "Generate all layers: Controller, Usecase, Context, Steps, Service, Repository, Entity, Mapper, DTOs"
         )},
     ],
@@ -380,14 +371,14 @@ print(result.choices[0].message.content)
 
 ---
 
-### Module 6 — `unit-test` (Source → JUnit 5 / Playwright Tests)
+### Module 6 — `unit-test` (Source → JUnit 5 Tests)
 
-**Backend — Chat UI:**
+**Chat UI:**
 
 ```
 System:
 You are a Java test engineer generating JUnit 5 unit tests.
-[paste content of agent-framework/projects/rems/backend/BE_UNIT_TEST.md]
+[paste content of agent-framework/projects/acme-pay/backend/AGENTS.md]
 
 User:
 Generate unit tests for this Step class:
@@ -397,60 +388,41 @@ Target: ≥ 80% line coverage.
 Include: happy path, business exception, SQL exception cases.
 ```
 
-**Backend — API:**
+**API:**
 
 ```python
-be_prompt = (FRAMEWORK_ROOT / "projects/rems/backend/BE_UNIT_TEST.md").read_text()
+backend_agents = (FRAMEWORK_ROOT / "projects/acme-pay/backend/AGENTS.md").read_text()
 step_src  = Path(
-    "src/main/java/th/co/scb/rems/restapi/step/blockword/"
-    "RemsBlockWordSearchGetBlockWordStep.java"
+    "src/main/java/com/acme/pay/restapi/paymentgateway/step/"
+    "ValidatePaymentStep.java"
 ).read_text()
 
 result = client.chat.completions.create(
     model="gpt-4o", max_tokens=6000,
     messages=[
-        {"role": "system", "content": be_prompt},
+        {"role": "system", "content": backend_agents},
         {"role": "user",   "content": f"Step class:\n{step_src}\n\nCoverage target ≥ 80%."},
     ],
 )
 save_output(result.choices[0].message.content,
-            "src/test/java/th/co/scb/rems/restapi/step/blockword/"
-            "RemsBlockWordSearchGetBlockWordStepTest.java")
-```
-
-**Frontend — Chat UI:**
-
-```
-System:
-You are a frontend test engineer using Playwright with TypeScript.
-[paste content of agent-framework/projects/rems/frontend/FE_UNIT_TEST.md]
-
-User:
-Generate Playwright tests for this React component:
-[paste TSX component source]
-
-BASE_URL: https://rems-sit.se.scb.co.th
-AUTH_SESSION_FILE: playwright/.auth/session.json
-Cover: search success, empty results, required field validation error.
+            "src/test/java/com/acme/pay/restapi/paymentgateway/step/"
+            "ValidatePaymentStepTest.java")
 ```
 
 ---
 
 ### Module 7 — `e2e-test` (Test Cases → Playwright Script)
 
-> **REMS:** Use `projects/rems/e2e-test/REMS_E2E_CONFIG.md` — single prompt with REMS-specific Playwright config, auth, and selector conventions built in.
-> The 2-step `core/e2e-test/` process is for non-REMS projects only.
-
 **Chat UI:**
 
 ```
 System:
-[paste content of agent-framework/projects/rems/AGENTS.md]
-[paste content of agent-framework/projects/rems/e2e-test/REMS_E2E_CONFIG.md]
+[paste content of agent-framework/projects/acme-pay/AGENTS.md]
+[paste content of agent-framework/projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md]
 
 User:
-FEATURE_NAME: block-word
-BASE_URL: https://rems-sit.se.scb.co.th
+FEATURE_NAME: payment-gateway
+BASE_URL: https://acme-pay-sit.example.com
 AUTH_SESSION_FILE: playwright/.auth/session.json
 
 Test cases:
@@ -462,18 +434,18 @@ Generate the Playwright TypeScript E2E test file.
 **API:**
 
 ```python
-rems_main  = (FRAMEWORK_ROOT / "projects/rems/AGENTS.md").read_text()
-e2e_prompt = (FRAMEWORK_ROOT / "projects/rems/e2e-test/REMS_E2E_CONFIG.md").read_text()
+acme_main  = (FRAMEWORK_ROOT / "projects/acme-pay/AGENTS.md").read_text()
+e2e_prompt = (FRAMEWORK_ROOT / "projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md").read_text()
 # Extract test case rows from Excel to text/CSV before calling
-test_cases = "[TC-001 | Search valid keyword | ...]\n[TC-002 | ...]"
+test_cases = "[TC-001 | Submit valid payment | ...]\n[TC-002 | ...]"
 
 result = client.chat.completions.create(
     model="gpt-4o", max_tokens=8000,
     messages=[
-        {"role": "system", "content": rems_main + "\n\n" + e2e_prompt},
+        {"role": "system", "content": acme_main + "\n\n" + e2e_prompt},
         {"role": "user",   "content": (
-            "FEATURE_NAME: block-word\n"
-            "BASE_URL: https://rems-sit.se.scb.co.th\n"
+            "FEATURE_NAME: payment-gateway\n"
+            "BASE_URL: https://acme-pay-sit.example.com\n"
             "AUTH_SESSION_FILE: playwright/.auth/session.json\n\n"
             f"Test cases:\n{test_cases}\n\n"
             "Generate the Playwright TypeScript E2E test file."
@@ -481,7 +453,7 @@ result = client.chat.completions.create(
     ],
 )
 save_output(result.choices[0].message.content,
-            "e2e/tests/block-word-e2e.spec.ts")
+            "e2e/tests/payment-gateway-e2e.spec.ts")
 ```
 
 ---
@@ -502,7 +474,7 @@ Generate the config/update-dependencies.yaml for:
 - GROUP_ID: org.springframework.boot
 - ARTIFACT_ID: spring-boot-starter-parent
 - NEW_VERSION: 3.5.10
-- TARGET_REPOS: [rems-backend, rems-frontend-bff]
+- TARGET_REPOS: [acme-pay-backend, acme-pay-bff]
 - GIT_TOKEN: env var GIT_TOKEN (do not hardcode)
 - RUN_TESTS: true
 - SKIP_ITS: true
@@ -522,7 +494,7 @@ result = client.chat.completions.create(
         {"role": "user",   "content": (
             "Generate config/update-dependencies.yaml for:\n"
             "- spring-boot-starter-parent → 3.5.10\n"
-            "- Repos: rems-backend, rems-frontend-bff\n"
+            "- Repos: acme-pay-backend, acme-pay-bff\n"
             "- GIT_TOKEN via env var\n"
             "- runTests: true, skipITs: true"
         )},
@@ -544,11 +516,11 @@ client         = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 FRAMEWORK_ROOT = Path("agent-framework")
 
 features = [
-    {"slug": "block-word",   "fsd": "docs/fsd-block-word.md"},
-    {"slug": "swift-config", "fsd": "docs/fsd-swift-config.md"},
+    {"slug": "payment-gateway",  "fsd": "projects/acme-pay/fsd/payment-gateway-fsd.md"},
+    {"slug": "refund-processing", "fsd": "projects/acme-pay/fsd/refund-processing-fsd.md"},
 ]
 
-agents_md = (FRAMEWORK_ROOT / "projects/rems/AGENTS.md").read_text()
+agents_md = (FRAMEWORK_ROOT / "projects/acme-pay/AGENTS.md").read_text()
 router    = (FRAMEWORK_ROOT / "core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md").read_text()
 system    = agents_md + "\n\n" + router
 
@@ -558,7 +530,7 @@ for feat in features:
         model="gpt-4o", max_tokens=8000,
         messages=[
             {"role": "system", "content": system},
-            {"role": "user",   "content": f"FEATURE_NAME: {feat['slug']}\nFSD:\n{fsd}"},
+            {"role": "user",   "content": f"FEATURE_SLUG: {feat['slug']}\nFSD:\n{fsd}"},
         ],
     )
     out = Path(f"output/{feat['slug']}/technical-spec/api-specification.md")
@@ -573,18 +545,18 @@ for feat in features:
 
 In ChatGPT, create a **Project** for each framework module:
 
-1. Open ChatGPT → **Projects** → **New Project** → name it (e.g., "REMS Tech Spec")
-2. Upload `agent-framework/projects/rems/AGENTS.md` and the relevant prompt file as project files
+1. Open ChatGPT → **Projects** → **New Project** → name it (e.g., "acme-pay Tech Spec")
+2. Upload `agent-framework/projects/acme-pay/AGENTS.md` and the relevant prompt file as project files
 3. The model will reference them in every conversation in that project — no manual pasting needed
 
 Recommended project setup:
 
 | Project Name | Upload Files |
 |---|---|
-| REMS Tech Spec | `projects/rems/AGENTS.md` + `core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md` |
-| REMS Code Review | `core/code-review/REVIEW_STANDARD.md` + `projects/rems/backend/AGENTS.md` |
-| REMS Backend Tests | `projects/rems/backend/AGENTS.md` + `projects/rems/backend/BE_UNIT_TEST.md` |
-| REMS E2E Tests | `core/e2e-test/AGENTS.md` + `core/e2e-test/GEN_SCRIPT_FROM_TC.md` |
+| Tech Spec | `projects/acme-pay/AGENTS.md` + `core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md` |
+| Code Review | `core/code-review/REVIEW_STANDARD.md` + `projects/acme-pay/backend/AGENTS.md` |
+| Backend Tests | `projects/acme-pay/backend/AGENTS.md` + spec files |
+| E2E Tests | `core/e2e-test/AGENTS.md` + `core/e2e-test/GEN_SCRIPT_FROM_TC.md` |
 
 ---
 

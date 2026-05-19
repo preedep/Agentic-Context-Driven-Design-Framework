@@ -1,135 +1,228 @@
 # WORKFLOW_EXAMPLES — GitHub Copilot Integration
 
-Copy these chat prompts into Copilot Chat (VS Code `⌃⌘I` / JetBrains `⌥⇧G`). Always attach the relevant files using `#file:` before the instruction.
+Copy these prompts into Copilot Chat (`⌃⌘I` VS Code / `⌥⇧G` JetBrains). Attach context files using `#file:` before the instruction.
+
+Examples use the `acme-pay` project. Replace with your own project folder name.
 
 ---
 
-## 1. Generate API Technical Spec from FSD
+## Step 1 — Write or Review an FSD
 
-> **REMS:** Use `projects/rems/tech-spec/REMS_API_TECH_SPEC.md` — includes REMS-specific rules. The `core/` router is for non-REMS projects only.
-
+**Author a new FSD:**
 ```
-#file:agent-framework/projects/rems/AGENTS.md
-#file:agent-framework/projects/rems/tech-spec/REMS_API_TECH_SPEC.md
-#file:docs/fsd-block-word.pdf
+#file:core/fsd/AGENTS.md
+#file:projects/acme-pay/AGENTS.md
 
-Run REMS_API_TECH_SPEC with:
-- FEATURE_NAME: block-word
-- HTTP_METHOD: POST
-- API_PATH: /api/rems-parameterandconfig/v1/block-word/search
-- CURRENT_DATE: 2026-04-30
+Use the FSD_TEMPLATE.md structure to write an FSD for:
+- FEATURE_NAME: Payment Gateway
+- FEATURE_SLUG: payment-gateway
+- DESCRIPTION: Allow operators to submit outbound payment transactions with validation and audit logging
 
-Generate the full REMS API technical specification in Confluence-ready Markdown, section by section.
+Fill all required sections. Flag open questions you cannot answer from the description.
 ```
 
----
-
-## 2. Generate API Spec from Source Code
-
+**Review an existing FSD:**
 ```
-#file:agent-framework/core/code-to-spec/AGENTS.md
-#file:agent-framework/core/code-to-spec/GENERATE_API_SPEC.md
-#file:src/main/java/th/co/scb/rems/restapi/controller/RemsParameterAndConfigController.java
+#file:core/fsd/AGENTS.md
+#file:projects/acme-pay/fsd/payment-gateway-fsd.md
 
-Run the GENERATE_API_SPEC prompt for:
-- HTTP_METHOD: GET
-- API_PATH: /api/rems-parameterandconfig/v1/block-word/search
+Review this FSD for completeness:
+- Are all sections present?
+- Are acceptance criteria written in Given/When/Then format?
+- Are there unresolved open questions?
+- Do business rules cover all error scenarios?
 
-Trace the controller → usecase → steps and generate the API specification.
+Produce a review checklist report.
 ```
 
 ---
 
-## 3. Code Review
+## Step 2 — BA Analysis (FSD → User Stories)
 
 ```
-#file:agent-framework/core/code-review/AGENTS.md
-#file:agent-framework/core/code-review/REVIEW_STANDARD.md
-#file:agent-framework/projects/rems/backend/AGENTS.md
+#file:core/ba-analysis/AGENTS.md
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/fsd/payment-gateway-fsd.md
 
-Review the current branch changes for the block-word search feature.
-Use the REVIEW_STANDARD.md 7-step process:
-1. Performance
-2. Code smell
-3. Structure compliance (vs AGENTS.md architecture)
-4. Spec-to-code mapping
-5. Business logic
-6. Error handling
-7. Test coverage
+Run BA Analysis:
+1. Extract actors and personas
+2. Write numbered user stories (US-001...) in As a / I want / So that format
+3. Write Given/When/Then acceptance criteria — minimum 2 scenarios per story
+4. List open questions
 
-Produce a review report in Markdown table format.
+Output format: Markdown with clear sections per user story.
 ```
 
 ---
 
-## 4. Generate REMS Backend Unit Tests
+## Step 3 — Generate Tech Spec from FSD
 
 ```
-#file:agent-framework/projects/rems/backend/AGENTS.md
-#file:agent-framework/projects/rems/backend/BE_UNIT_TEST.md
-#file:src/main/java/th/co/scb/rems/restapi/usecase/blockword/RemsBlockWordSearchUsecaseImpl.java
+#file:projects/acme-pay/AGENTS.md
+#file:core/nfr/AGENTS.md
+#file:core/tech-stack/AGENTS.md
+#file:core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md
+#file:projects/acme-pay/fsd/payment-gateway-fsd.md
 
-Run the BE_UNIT_TEST prompt for the usecase class above.
-Generate JUnit 5 tests for:
-- Happy path
-- Business exception case
-- SQL exception case
-Target coverage ≥ 80%.
-```
+Run the tech spec router.
+Classify the FSD type (api/batch/db) and generate:
+- api-specification.md (endpoints, request/response, field mapping)
+- validation-rules.md
+- error-codes.md (prefix: PAY)
+- sequence-diagrams.md (PlantUML)
 
----
-
-## 5. Generate Frontend Unit Tests
-
-```
-#file:agent-framework/projects/rems/frontend/AGENTS.md
-#file:agent-framework/projects/rems/frontend/FE_UNIT_TEST.md
-#file:src/features/block-word/BlockWordSearchPage.tsx
-
-Run FE_UNIT_TEST prompt for the BlockWordSearchPage component.
-Generate Playwright E2E tests covering:
-- Search with valid inputs → results table shown
-- Search with no results → empty state shown
-- Validation error on empty required field
+Apply NFR rules: structured JSON logging fields, server-side data masking, generic error messages to client.
 ```
 
 ---
 
-## 6. Generate E2E Playwright Script
-
-> **REMS:** Use `projects/rems/e2e-test/REMS_E2E_CONFIG.md` — single prompt with REMS auth, selectors, and session timeout handling built in. The `core/e2e-test/` 2-step process is for non-REMS projects only.
+## Step 4 — Generate Failing Unit Tests (RED)
 
 ```
-#file:agent-framework/projects/rems/AGENTS.md
-#file:agent-framework/projects/rems/e2e-test/REMS_E2E_CONFIG.md
-#file:test-cases/block-word-test-cases.xlsx
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/backend/AGENTS.md
+#file:output/payment-gateway/technical-spec/api-specification.md
+#file:output/payment-gateway/technical-spec/validation-rules.md
+#file:output/payment-gateway/technical-spec/error-codes.md
 
-Run REMS_E2E_CONFIG with:
-- BASE_URL: https://rems-sit.se.scb.co.th
+Generate JUnit 5 test stubs for:
+- PaymentGatewayController
+- CreatePaymentUseCaseImpl
+- ValidatePaymentStep
+- SavePaymentStep
+
+Rules:
+- @ExtendWith(MockitoExtension.class) — no JUnit 4
+- Tests must compile but FAIL — no production code exists yet
+- Never mock the Context object — always instantiate with new
+- Add traceability comment: which spec requirement each test covers
+- Coverage target ≥ 80% per class
+```
+
+---
+
+## Step 5 — Implement to Pass Tests (GREEN + REFACTOR)
+
+**GREEN — write minimum implementation:**
+```
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/backend/AGENTS.md
+#file:core/tdd/TDD_CYCLE.md
+#file:src/test/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStepTest.java
+
+Write ValidatePaymentStep.java at:
+src/main/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStep.java
+
+Write only enough code to make all tests in the test file pass.
+Follow Usecase → Step pattern from AGENTS.md.
+```
+
+**REFACTOR — clean without breaking tests:**
+```
+#file:core/nfr/AGENTS.md
+#file:projects/acme-pay/backend/AGENTS.md
+#file:src/main/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStep.java
+
+Review and refactor this Step class:
+- Naming conventions match AGENTS.md rules
+- Logging includes required NFR fields (event_date_time, log_type, level)
+- Error messages to client are generic — no stack traces
+- Data masking applied server-side for any account numbers in response
+
+Confirm all tests still pass after changes.
+```
+
+---
+
+## Step 6 — Code Review
+
+```
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/backend/AGENTS.md
+#file:core/code-review/REVIEW_STANDARD.md
+#file:core/nfr/AGENTS.md
+#file:output/payment-gateway/technical-spec/api-specification.md
+
+Review the current branch changes for payment-gateway.
+
+Produce a Markdown report covering all 7 dimensions:
+1. Performance (N+1 queries, unbounded collections, missing indexes)
+2. Code smell (naming, duplication, complexity)
+3. Security (NFR Section 5: injection, masking, error disclosure)
+4. Structure (Usecase → Step pattern compliance)
+5. Spec-to-code mapping (every endpoint in spec is implemented)
+6. Business logic (validation rules match spec)
+7. Test coverage (≥ 80% per class, all error codes covered)
+```
+
+---
+
+## Step 7 — E2E Test Generation
+
+```
+#file:projects/acme-pay/AGENTS.md
+#file:projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md
+#file:output/payment-gateway/ba/user-stories.md
+
+Generate Playwright TypeScript E2E tests for the payment-gateway feature.
+
+- BASE_URL: https://acme-pay-sit.example.com
 - AUTH_SESSION_FILE: playwright/.auth/session.json
-- FEATURE_NAME: block-word
+- Cover all acceptance criteria from user-stories.md
 
-Generate the Playwright TypeScript E2E test file.
-Output: e2e/tests/block-word-e2e.spec.ts
+Output file: e2e/tests/payment-gateway.spec.ts
+```
+
+---
+
+## Standalone Examples
+
+### Generate Spec from Existing Source Code
+
+```
+#file:core/code-to-spec/AGENTS.md
+#file:core/code-to-spec/GENERATE_API_SPEC.md
+#file:projects/acme-pay/AGENTS.md
+#file:src/main/java/com/acme/pay/restapi/paymentgateway/controller/PaymentGatewayController.java
+
+Run GENERATE_API_SPEC for:
+- HTTP_METHOD: POST
+- API_PATH: /api/acme-pay/v1/payment/submit
+
+Trace controller → usecase → steps and generate the API specification document.
+```
+
+### Check NFR Compliance
+
+```
+#file:core/nfr/AGENTS.md
+#file:src/main/java/com/acme/pay/restapi/paymentgateway/step/SavePaymentStep.java
+
+Check this Step class for NFR compliance:
+- Section 1: Are application log entries structured JSON with all 3 mandatory fields?
+- Section 2: Is PII access being logged in pipe-delimited format to the correct logger?
+- Section 5: Is account number masked server-side before any response?
+- Section 5: Are error messages generic (no stack traces, no internal paths)?
+
+Report each violation with the specific NFR rule reference.
 ```
 
 ---
 
 ## Tips
 
-**Attach multiple source files at once:**
-Drag files from the VS Code Explorer directly into the Copilot Chat input box.
+**Attach multiple files by dragging from the VS Code Explorer** directly into the Copilot Chat input box.
 
-**Use @workspace to find relevant files:**
+**Use `@workspace` to locate files first:**
 ```
-@workspace Which files implement the block-word search usecase step?
+@workspace Which files implement the PaymentGateway usecase step?
 ```
-Then attach the results with `#file:` in your follow-up.
+Then attach results with `#file:` in your follow-up.
+
+**Switch to Copilot Edits for file creation:**
+Open Copilot Edits (`⇧⌘I`), paste generated code — Copilot proposes creating the file and you click Apply.
 
 **Iterative refinement:**
 ```
-The sequence diagram in the spec is missing the error path. Add a Vavr Try failure branch showing the @ControllerAdvice handler.
+The sequence diagram is missing the error path. Add a failure branch showing the exception handler.
 ```
-
-**Apply output to files:**
-Switch to Copilot Edits (`⇧⌘I`), paste the generated spec, and Copilot will propose creating the output file — click Apply.

@@ -18,7 +18,7 @@ your-project/
 │   └── copilot-instructions.md      ← references agent-framework/ by relative path
 ├── agent-framework/
 │   ├── core/
-│   ├── projects/rems/
+│   ├── projects/acme-pay/
 │   └── integrate-agent/
 └── src/
 ```
@@ -51,8 +51,8 @@ Create `project.code-workspace` at a parent folder level:
 ```json
 {
   "folders": [
-    { "path": "rems-backend",    "name": "REMS Backend" },
-    { "path": "agent-framework", "name": "AI Framework" }
+    { "path": "acme-pay-backend",  "name": "acme-pay Backend" },
+    { "path": "agent-framework",   "name": "AI Framework" }
   ]
 }
 ```
@@ -94,11 +94,10 @@ This project uses the Multi-Agent AI Automation Framework in `agent-framework/`.
 | Unit test generation                   | `agent-framework/core/unit-test/AGENTS.md` |
 | E2E test / Playwright                  | `agent-framework/core/e2e-test/AGENTS.md` |
 | Dependency update (multi-repo)         | `agent-framework/core/dependency-update/AGENTS.md` |
-| REMS all tasks                         | `agent-framework/projects/rems/AGENTS.md` |
+| Project context (all tasks)            | `agent-framework/projects/acme-pay/AGENTS.md` |
 
 ## Rules
-- Always read AGENTS.md before starting a task — it defines architecture rules that override your defaults.
-- For REMS: read `agent-framework/projects/rems/AGENTS.md` before any backend or frontend task.
+- Always read the project AGENTS.md before starting a task — it defines architecture rules that override your defaults.
 - Use {{PLACEHOLDER}} variables exactly as documented in each AGENTS.md.
 ```
 
@@ -116,11 +115,11 @@ Attach files with `#file:path/to/file` in the chat input. Drag files from the Ex
 ## Step 3 — Use `@workspace` for Discovery
 
 ```
-@workspace What agent modules are available for REMS backend tasks?
+@workspace What agent modules are available for backend tasks?
 ```
 
 ```
-@workspace Which prompt file should I use to generate a Playwright E2E test for the block-word search page?
+@workspace Which prompt file should I use to generate a Playwright E2E test?
 ```
 
 ---
@@ -137,18 +136,15 @@ For tasks that produce multiple files (e.g., a tech spec with 5 sections):
 
 ## How to Trigger Each Core Module
 
-The standard loading order for **REMS tasks** — always attach AGENTS.md first, then the prompt file:
+The standard loading order — always attach project AGENTS.md first, then the prompt file:
 
 ```
-#file:agent-framework/projects/rems/AGENTS.md              ← REMS rules (always first)
-#file:agent-framework/projects/rems/<domain>/AGENTS.md     ← backend or frontend rules
-#file:agent-framework/projects/rems/<task-prompt>.md       ← REMS-specific prompt (preferred)
-  OR #file:agent-framework/core/<module>/<PROMPT>.md       ← core prompt (when no REMS version exists)
+#file:agent-framework/projects/acme-pay/AGENTS.md         ← project rules (always first)
+#file:agent-framework/projects/acme-pay/<domain>/AGENTS.md ← backend or frontend rules
+#file:agent-framework/core/<module>/<PROMPT>.md            ← core prompt
 ```
 
-> **`core/` vs `projects/rems/`** — Use `projects/rems/*` prompt files for all actual REMS work.
-> The `core/` modules are generic templates for building new project adapters.
-> REMS has its own prompt files for tech-spec, unit-test, and e2e-test that include REMS-specific rules.
+> Always load the project AGENTS.md first — it provides the package root, error code prefix, API base path, and naming conventions every prompt depends on.
 
 ---
 
@@ -158,10 +154,10 @@ The standard loading order for **REMS tasks** — always attach AGENTS.md first,
 
 ```
 #file:agent-framework/core/ba-analysis/AGENTS.md
-#file:docs/fsd-block-word.pdf
+#file:projects/acme-pay/fsd/payment-gateway-fsd.md
 
 Follow the 6 Process Steps defined in AGENTS.md against this requirement document.
-Project context: REMS — Spring Boot backend, React 18 frontend.
+Project context: acme-pay — Spring Boot backend, React 18 frontend.
 
 Produce:
 1. user-stories.md — numbered user stories in As a / I want / So that format
@@ -174,21 +170,18 @@ Produce:
 
 ### Module 2 — `tech-spec` (FSD → Technical Specification)
 
-> **REMS:** Use `projects/rems/tech-spec/REMS_API_TECH_SPEC.md` (or BATCH / DATABASE variant).
-> The `core/` router is for non-REMS projects only.
-
 ```
-#file:agent-framework/projects/rems/AGENTS.md
-#file:agent-framework/projects/rems/tech-spec/REMS_API_TECH_SPEC.md
-#file:docs/fsd-block-word.pdf
+#file:agent-framework/projects/acme-pay/AGENTS.md
+#file:agent-framework/core/nfr/AGENTS.md
+#file:agent-framework/core/tech-stack/AGENTS.md
+#file:agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md
+#file:projects/acme-pay/fsd/payment-gateway-fsd.md
 
-Run REMS_API_TECH_SPEC with:
-- FEATURE_NAME: block-word
-- HTTP_METHOD: POST
-- API_PATH: /api/rems-parameterandconfig/v1/block-word/search
-- CURRENT_DATE: 2026-04-30
+Run the tech spec router.
+FEATURE_SLUG: payment-gateway
+CURRENT_DATE: {{TODAY}}
 
-Generate the full REMS API technical specification in Confluence-ready Markdown, section by section.
+Generate the full technical specification.
 ```
 
 ---
@@ -198,11 +191,11 @@ Generate the full REMS API technical specification in Confluence-ready Markdown,
 ```
 #file:agent-framework/core/code-to-spec/AGENTS.md
 #file:agent-framework/core/code-to-spec/GENERATE_API_SPEC.md
-#file:src/main/java/th/co/scb/rems/restapi/controller/RemsParameterAndConfigController.java
+#file:src/main/java/com/acme/pay/restapi/paymentgateway/controller/PaymentGatewayController.java
 
 Run GENERATE_API_SPEC with:
-- HTTP_METHOD: GET
-- API_PATH: /api/rems-parameterandconfig/v1/block-word/search
+- HTTP_METHOD: POST
+- API_PATH: /api/acme-pay/v1/payment/submit
 - SOURCE_ROOT: src/main/java
 
 Trace controller → usecase → steps and generate the full API specification document.
@@ -215,11 +208,11 @@ Trace controller → usecase → steps and generate the full API specification d
 ```
 #file:agent-framework/core/code-review/AGENTS.md
 #file:agent-framework/core/code-review/REVIEW_STANDARD.md
-#file:agent-framework/projects/rems/backend/AGENTS.md
+#file:agent-framework/projects/acme-pay/backend/AGENTS.md
 
-Review the current branch changes for the block-word search feature.
-BRANCH_NAME: feature/block-word-search
-SPEC_FILE: [attach #file:output/block-word/technical-spec/api-specification.md if available]
+Review the current branch changes for the payment-gateway feature.
+BRANCH_NAME: feature/payment-gateway
+SPEC_FILE: [attach #file:output/payment-gateway/technical-spec/api-specification.md if available]
 
 Apply the 7-dimension review standard:
 1. Performance  2. Code smell  3. Structure compliance
@@ -233,22 +226,20 @@ Produce a Markdown table review report.
 ### Module 5 — `developer-coding` (Standards-Guided Code Generation)
 
 > Instructions are inline in AGENTS.md — no separate prompt file.
-> Load `projects/rems/backend/AGENTS.md` — it overrides generic rules with REMS-specific ones (`@Autowired`, `JdbcTemplate`, `@PostMapping`, Vavr Try, etc.).
+> Load `projects/acme-pay/backend/AGENTS.md` — it defines the Usecase/Step pattern, `@Autowired`, `JdbcTemplate`, and Vavr Try conventions.
 
 ```
-#file:agent-framework/projects/rems/AGENTS.md
-#file:agent-framework/projects/rems/backend/AGENTS.md
-#file:src/main/java/th/co/scb/rems/restapi/parameterandconfig/usecase/systemconfig/RemsSystemConfigSearchUsecaseImpl.java
+#file:agent-framework/projects/acme-pay/AGENTS.md
+#file:agent-framework/projects/acme-pay/backend/AGENTS.md
 
-Implement a new POST endpoint following the REMS Usecase/Step architecture.
+Implement a new POST endpoint following the Usecase/Step architecture.
 
-Feature: Block Word Search
-API_PATH: /api/rems-parameterandconfig/v1/block-word/search
-HTTP_METHOD: POST (all REMS endpoints are POST)
-Request fields: keyword, pageNo, pageSize, accessFunction
+Feature: Payment Gateway — Submit Payment
+API_PATH: /api/acme-pay/v1/payment/submit
+HTTP_METHOD: POST
+Request fields: accountNumber, amount, currency, reference
 
 Generate all layers: Controller method, Usecase interface + impl, Context, Steps, Service, Repository, Entity, Mapper, DTOs.
-Mirror the package structure of the attached usecase file.
 ```
 
 ---
@@ -258,53 +249,47 @@ Mirror the package structure of the attached usecase file.
 **Backend (JUnit 5):**
 
 ```
-#file:agent-framework/projects/rems/backend/AGENTS.md
-#file:agent-framework/projects/rems/backend/BE_UNIT_TEST.md
-#file:src/main/java/th/co/scb/rems/restapi/usecase/blockword/RemsBlockWordSearchUsecaseImpl.java
+#file:agent-framework/projects/acme-pay/AGENTS.md
+#file:agent-framework/projects/acme-pay/backend/AGENTS.md
+#file:src/main/java/com/acme/pay/restapi/paymentgateway/step/ValidatePaymentStep.java
 
-Run BE_UNIT_TEST for the usecase class above.
-Generate JUnit 5 tests covering:
-- Happy path — full pipeline executes, response not null
-- User step throws exception
-- Feature step throws exception
-Target coverage ≥ 80%.
+Generate JUnit 5 tests for the Step class above.
+Coverage target ≥ 80%.
+Include: happy path, business exception, SQL exception cases.
 ```
 
 **Frontend (Playwright):**
 
 ```
-#file:agent-framework/projects/rems/frontend/AGENTS.md
-#file:agent-framework/projects/rems/frontend/FE_UNIT_TEST.md
-#file:src/features/block-word/BlockWordSearchPage.tsx
+#file:agent-framework/projects/acme-pay/AGENTS.md
+#file:agent-framework/projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md
+#file:src/features/payment/PaymentSubmitPage.tsx
 
-Run FE_UNIT_TEST for BlockWordSearchPage.
-BASE_URL: https://rems-sit.se.scb.co.th
+Generate Playwright TypeScript tests for PaymentSubmitPage.
+BASE_URL: https://acme-pay-sit.example.com
 AUTH_SESSION_FILE: playwright/.auth/session.json
 
-Generate Playwright TypeScript tests covering:
-1. Search with valid inputs → results table shown
-2. Search returns no results → empty state shown
-3. Submit with empty required field → validation error shown
+Generate tests covering:
+1. Submit valid payment → success message shown
+2. Submit with invalid amount → validation error shown
+3. Required field missing → field error shown
 ```
 
 ---
 
 ### Module 7 — `e2e-test` (Test Cases → Playwright Script)
 
-> **REMS:** Use `projects/rems/e2e-test/REMS_E2E_CONFIG.md` — single prompt with REMS-specific Playwright config, auth, and selector conventions built in.
-> The 2-step `core/e2e-test/` process is for non-REMS projects only.
-
 ```
-#file:agent-framework/projects/rems/AGENTS.md
-#file:agent-framework/projects/rems/e2e-test/REMS_E2E_CONFIG.md
-#file:test-cases/block-word-test-cases.xlsx
+#file:agent-framework/projects/acme-pay/AGENTS.md
+#file:agent-framework/projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md
+#file:test-cases/payment-gateway-test-cases.xlsx
 
-Generate REMS E2E Playwright scripts with:
-- BASE_URL: https://rems-sit.se.scb.co.th
+Generate Playwright E2E scripts with:
+- BASE_URL: https://acme-pay-sit.example.com
 - AUTH_SESSION_FILE: playwright/.auth/session.json
-- FEATURE_NAME: block-word
+- FEATURE_NAME: payment-gateway
 
-Output file: e2e/tests/block-word-e2e.spec.ts
+Output file: e2e/tests/payment-gateway-e2e.spec.ts
 ```
 
 ---
@@ -321,7 +306,7 @@ Help me write the config/update-dependencies.yaml for:
 - GROUP_ID: org.springframework.boot
 - ARTIFACT_ID: spring-boot-starter-parent
 - NEW_VERSION: 3.5.10
-- TARGET_REPOS: [rems-backend, rems-frontend-bff]
+- TARGET_REPOS: [acme-pay-backend, acme-pay-bff]
 - GIT_TOKEN: env var GIT_TOKEN
 - RUN_TESTS: true
 
@@ -337,13 +322,13 @@ Show the complete YAML and the command to run the Python update script.
 Drag files from the VS Code Explorer into the Copilot Chat input. Or type `#file:` for each:
 
 ```
-#file:agent-framework/projects/rems/AGENTS.md #file:agent-framework/core/tech-spec/AGENTS.md #file:docs/fsd-block-word.pdf
+#file:agent-framework/projects/acme-pay/AGENTS.md #file:agent-framework/core/tech-spec/AGENTS.md #file:projects/acme-pay/fsd/payment-gateway-fsd.md
 ```
 
 **Find relevant source files first:**
 
 ```
-@workspace Which files implement the block-word search usecase step?
+@workspace Which files implement the payment gateway usecase step?
 ```
 
 Then attach those files with `#file:` in your follow-up prompt.
@@ -351,8 +336,8 @@ Then attach those files with `#file:` in your follow-up prompt.
 **Iterative refinement:**
 
 ```
-The sequence diagram in the spec is missing the error path. Add a Vavr Try failure
-branch showing the @ControllerAdvice handler response.
+The sequence diagram in the spec is missing the error path. Add a failure branch
+showing the exception handler response.
 ```
 
 **Apply Copilot Edits to save output:**

@@ -18,7 +18,7 @@ Configure GitHub Copilot Chat (VS Code or JetBrains) to use the framework's AGEN
 
 ## Standard Inputs
 `{{FRAMEWORK_ROOT}}` — workspace-relative path to `agent-framework/`
-`{{PROJECT_NAME}}` — e.g., `rems`
+`{{PROJECT_NAME}}` — e.g., `acme-pay`
 
 ## Outputs
 - Copilot Chat generates output inline — copy to the appropriate output file manually

@@ -6,10 +6,10 @@ Load these files before running this prompt:
 
 | File | Purpose |
 |---|---|
-| `agent-framework/projects/rems/AGENTS.md` | REMS architecture rules, error codes (for REMS reviews) |
-| `agent-framework/projects/rems/backend/AGENTS.md` | REMS coding standards — the review validates against these rules |
+| `agent-framework/projects/acme-pay/AGENTS.md` | Project architecture rules, error codes |
+| `agent-framework/projects/acme-pay/backend/AGENTS.md` | Project coding standards — the review validates against these rules |
 
-> For non-REMS projects: replace the files above with the equivalent project AGENTS.md files.
+> Replace the paths above with your own project's AGENTS.md files.
 > If you have not loaded the files above, stop and load them first.
 > The instructions below assume that context is already present.
 

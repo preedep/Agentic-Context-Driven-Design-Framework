@@ -6,10 +6,10 @@ Load these files before running this prompt:
 
 | File | Purpose |
 |---|---|
-| `agent-framework/projects/rems/AGENTS.md` | REMS API base path, Confluence space, error codes (for REMS tasks) |
-| `agent-framework/projects/rems/backend/AGENTS.md` | REMS Usecase/Step pattern — the spec traces this call chain |
+| `agent-framework/projects/acme-pay/AGENTS.md` | Project API base path, Confluence space, error codes |
+| `agent-framework/projects/acme-pay/backend/AGENTS.md` | Project Usecase/Step pattern — the spec traces this call chain |
 
-> For non-REMS projects: replace the files above with the equivalent project AGENTS.md files.
+> Replace the paths above with your own project's AGENTS.md files.
 > If you have not loaded the files above, stop and load them first.
 > The instructions below assume that context is already present.
 

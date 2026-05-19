@@ -18,7 +18,7 @@ Configure and operate the Multi-Agent AI Automation Framework inside Claude Code
 
 ## Standard Inputs
 `{{FRAMEWORK_ROOT}}` — absolute or repo-relative path to `agent-framework/`
-`{{PROJECT_NAME}}` — e.g., `rems`
+`{{PROJECT_NAME}}` — e.g., `acme-pay`
 `{{TASK}}` — e.g., `generate API tech spec for block-word search`
 
 ## Outputs

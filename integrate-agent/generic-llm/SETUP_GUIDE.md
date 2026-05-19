@@ -18,11 +18,11 @@ This guide works with **any LLM** — ChatGPT, Gemini, Claude.ai, Ollama, LM Stu
 your-project/
 ├── agent-framework/
 │   ├── core/
-│   └── projects/rems/
+│   └── projects/acme-pay/
 └── src/
 ```
 
-Use paths like: `agent-framework/projects/rems/AGENTS.md`
+Use paths like: `agent-framework/projects/acme-pay/AGENTS.md`
 
 ---
 
@@ -46,8 +46,8 @@ git submodule update --init --recursive
 ```bash
 # Parent folder structure
 parent/
-├── rems-backend/     ← your project
-└── agent-framework/  ← framework (separate clone)
+├── acme-pay-backend/   ← your project
+└── agent-framework/    ← framework (separate clone)
 ```
 
 Use the shell helper with absolute paths pointing to the sibling folder.
@@ -71,11 +71,11 @@ Open the relevant AGENTS.md and prompt file. Copy their full content into a sing
 ```
 === AGENT CONTEXT ===
 
-[Paste full content of: agent-framework/projects/rems/AGENTS.md]
+[Paste full content of: agent-framework/projects/acme-pay/AGENTS.md]
 
 === TASK INSTRUCTIONS ===
 
-[Paste full content of: agent-framework/core/tech-spec/GENERATE_API_TECH_SPEC.md]
+[Paste full content of: agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md]
 ```
 
 If the model supports a **system message** (API or advanced chat UI), put the context block there. Otherwise paste it at the very top of the first user message.
@@ -90,15 +90,15 @@ Common substitutions:
 
 | Placeholder | Example value |
 |---|---|
-| `{{PROJECT_NAME}}` | `rems` |
-| `{{FEATURE_NAME}}` | `block-word` |
-| `{{HTTP_METHOD}}` | `GET` |
-| `{{API_PATH}}` | `/api/rems-parameterandconfig/v1/block-word/search` |
-| `{{BRANCH_NAME}}` | `feature/block-word-search` |
+| `{{PROJECT_NAME}}` | `acme-pay` |
+| `{{FEATURE_NAME}}` | `payment-gateway` |
+| `{{HTTP_METHOD}}` | `POST` |
+| `{{API_PATH}}` | `/api/acme-pay/v1/payment/submit` |
+| `{{BRANCH_NAME}}` | `feature/payment-gateway` |
 | `{{SPEC_FILE}}` | *(paste spec content inline)* |
 | `{{FSD_CONTENT}}` | *(paste FSD text inline)* |
-| `{{BASE_URL}}` | `https://rems-sit.se.scb.co.th` |
-| `{{CURRENT_DATE}}` | `2026-04-30` |
+| `{{BASE_URL}}` | `https://acme-pay-sit.example.com` |
+| `{{CURRENT_DATE}}` | `2026-05-19` |
 
 ---
 
@@ -153,9 +153,7 @@ chmod +x run-prompt.sh
 
 ## How to Trigger Each Core Module
 
-> **`core/` vs `projects/rems/`** — Use `projects/rems/*` prompt files for all actual REMS work.
-> The `core/` modules are generic templates for building new project adapters.
-> REMS has its own prompt files for tech-spec, unit-test, and e2e-test that include REMS-specific rules.
+> Always load `projects/<name>/AGENTS.md` first — it provides the package root, error code prefix, API base path, and naming conventions that every prompt depends on.
 
 ---
 
@@ -175,7 +173,7 @@ chmod +x run-prompt.sh
 [paste ba-analysis/AGENTS.md content]
 
 === INPUTS ===
-Project context: REMS — Spring Boot backend, React 18 frontend
+Project context: acme-pay — Spring Boot backend, React 18 frontend
 FSD:
 [paste FSD text]
 
@@ -187,27 +185,22 @@ user-stories.md, data-flow.md, glossary.md, open-questions.md
 
 ### Module 2 — `tech-spec` (FSD → Technical Specification)
 
-> **REMS:** Use `projects/rems/tech-spec/REMS_API_TECH_SPEC.md` (or BATCH / DATABASE variant).
-> The `core/` router is for non-REMS projects only.
-
 ```bash
 ./run-prompt.sh \
-  agent-framework/projects/rems/AGENTS.md \
-  agent-framework/projects/rems/tech-spec/REMS_API_TECH_SPEC.md
+  agent-framework/projects/acme-pay/AGENTS.md \
+  agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md
 ```
 
 **Follow-up message:**
 
 ```
-FEATURE_NAME: block-word
-HTTP_METHOD: POST
-API_PATH: /api/rems-parameterandconfig/v1/block-word/search
-CURRENT_DATE: 2026-04-30
+FEATURE_SLUG: payment-gateway
+CURRENT_DATE: 2026-05-19
 
 FSD:
 [paste FSD content]
 
-Generate the full REMS API technical specification.
+Generate the full technical specification.
 ```
 
 ---
@@ -216,7 +209,7 @@ Generate the full REMS API technical specification.
 
 ```bash
 ./run-prompt.sh \
-  agent-framework/projects/rems/AGENTS.md \
+  agent-framework/projects/acme-pay/AGENTS.md \
   agent-framework/core/code-to-spec/GENERATE_API_SPEC.md
 ```
 
@@ -224,7 +217,7 @@ Generate the full REMS API technical specification.
 
 ```
 HTTP_METHOD: POST
-API_PATH: /api/rems-parameterandconfig/v1/block-word/search
+API_PATH: /api/acme-pay/v1/payment/submit
 SOURCE_ROOT: src/main/java
 
 Controller source:
@@ -245,17 +238,17 @@ Trace the call chain and generate the API specification document.
 
 ```bash
 ./run-prompt.sh \
-  agent-framework/projects/rems/backend/AGENTS.md \
+  agent-framework/projects/acme-pay/backend/AGENTS.md \
   agent-framework/core/code-review/REVIEW_STANDARD.md
 ```
 
 **Follow-up message:**
 
 ```
-BRANCH_NAME: feature/block-word-search
+BRANCH_NAME: feature/payment-gateway
 
 Git diff:
-[paste output of: git diff origin/main...feature/block-word-search]
+[paste output of: git diff origin/main...feature/payment-gateway]
 
 Apply all 7 review dimensions and produce a Markdown table report.
 ```
@@ -265,24 +258,24 @@ Apply all 7 review dimensions and produce a Markdown table report.
 ### Module 5 — `developer-coding` (Standards-Guided Code Generation)
 
 > Instructions are inline in AGENTS.md — no separate prompt file.
-> Load `projects/rems/backend/AGENTS.md` — it overrides generic rules with REMS-specific ones (`@Autowired`, `JdbcTemplate`, `@PostMapping`, Vavr Try, etc.).
+> Load `projects/acme-pay/backend/AGENTS.md` — it defines the Usecase/Step pattern, `@Autowired`, `JdbcTemplate`, and Vavr Try conventions.
 
 ```bash
 ./run-prompt.sh \
-  agent-framework/projects/rems/AGENTS.md \
-  agent-framework/projects/rems/backend/AGENTS.md
+  agent-framework/projects/acme-pay/AGENTS.md \
+  agent-framework/projects/acme-pay/backend/AGENTS.md
 ```
 
 **Follow-up message:**
 
 ```
-Implement a new POST endpoint (all REMS endpoints use POST):
-API_PATH: /api/rems-parameterandconfig/v1/block-word/search
+Implement a new POST endpoint:
+API_PATH: /api/acme-pay/v1/payment/submit
 HTTP_METHOD: POST
-Request fields: keyword (String), pageNo (int), pageSize (int), accessFunction (String)
+Request fields: accountNumber (String), amount (BigDecimal), currency (String), reference (String)
 
 Generate all layers: Controller, Usecase, Steps, Service, Repository, DTOs.
-Follow the Usecase/Step pattern defined in the REMS AGENTS.md.
+Follow the Usecase/Step pattern defined in AGENTS.md.
 
 Existing controller to mirror:
 [paste existing controller Java source]
@@ -290,14 +283,12 @@ Existing controller to mirror:
 
 ---
 
-### Module 6 — `unit-test` (Source → JUnit 5 / Playwright Tests)
-
-**Backend (JUnit 5):**
+### Module 6 — `unit-test` (Source → JUnit 5 Tests)
 
 ```bash
 ./run-prompt.sh \
-  agent-framework/projects/rems/backend/AGENTS.md \
-  agent-framework/projects/rems/backend/BE_UNIT_TEST.md
+  agent-framework/projects/acme-pay/backend/AGENTS.md \
+  ""
 ```
 
 **Follow-up:**
@@ -310,43 +301,21 @@ Coverage target ≥ 80%.
 Include: happy path, business exception, SQL exception cases.
 ```
 
-**Frontend (Playwright):**
-
-```bash
-./run-prompt.sh \
-  agent-framework/projects/rems/frontend/AGENTS.md \
-  agent-framework/projects/rems/frontend/FE_UNIT_TEST.md
-```
-
-**Follow-up:**
-
-```
-Generate Playwright TypeScript tests for this React component:
-[paste TSX component source]
-
-BASE_URL: https://rems-sit.se.scb.co.th
-AUTH_SESSION_FILE: playwright/.auth/session.json
-Cover: search success, empty results, required field validation error.
-```
-
 ---
 
 ### Module 7 — `e2e-test` (Test Cases → Playwright Script)
 
-> **REMS:** Use `projects/rems/e2e-test/REMS_E2E_CONFIG.md` — single prompt with REMS-specific Playwright config, auth, and selector conventions built in.
-> The 2-step `core/e2e-test/` process is for non-REMS projects only.
-
 ```bash
 ./run-prompt.sh \
-  agent-framework/projects/rems/AGENTS.md \
-  agent-framework/projects/rems/e2e-test/REMS_E2E_CONFIG.md
+  agent-framework/projects/acme-pay/AGENTS.md \
+  agent-framework/projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md
 ```
 
 **Follow-up:**
 
 ```
-FEATURE_NAME: block-word
-BASE_URL: https://rems-sit.se.scb.co.th
+FEATURE_NAME: payment-gateway
+BASE_URL: https://acme-pay-sit.example.com
 AUTH_SESSION_FILE: playwright/.auth/session.json
 
 Test cases (from Excel):
@@ -374,7 +343,7 @@ Generate the config/update-dependencies.yaml for:
 - GROUP_ID: org.springframework.boot
 - ARTIFACT_ID: spring-boot-starter-parent
 - NEW_VERSION: 3.5.10
-- TARGET_REPOS: [rems-backend, rems-frontend-bff]
+- TARGET_REPOS: [acme-pay-backend, acme-pay-bff]
 - GIT_TOKEN: env var GIT_TOKEN (do not hardcode)
 - RUN_TESTS: true
 - SKIP_ITS: true
@@ -409,7 +378,7 @@ Tech specs, code review, and FSD analysis can consume 20k–60k tokens.
 | Content | Approximate Tokens |
 |---|---|
 | `AGENTS.md` (one module) | 500 – 2,000 |
-| Prompt file (e.g., `GENERATE_API_TECH_SPEC.md`) | 3,000 – 8,000 |
+| Prompt file (e.g., `GENERATE_TECH_SPEC_ROUTER.md`) | 3,000 – 8,000 |
 | A single Java class (200 lines) | ~1,500 |
 | A full FSD (10 pages) | ~8,000 – 15,000 |
 | Playwright test Excel (50 rows) | ~3,000 |

@@ -52,8 +52,8 @@ Use this agent when you need to:
 | Layer | Output File |
 |---|---|
 | Controller | Add test methods to existing `[Controller]Test.java` |
-| Usecase Impl | `src/test/java/.../usecase/[feature]/Rems[Feature][Action]UsecaseImplTest.java` |
-| Step | `src/test/java/.../step/[feature]/Rems[Feature][Action][Description]StepTest.java` |
+| Usecase Impl | `src/test/java/.../usecase/[feature]/[Feature][Action]UsecaseImplTest.java` |
+| Step | `src/test/java/.../step/[feature]/[Feature][Action][Description]StepTest.java` |
 
 ### Frontend Tests
 
@@ -102,11 +102,11 @@ Achieve this by:
 
 - **JUnit 5 only** — `@ExtendWith(MockitoExtension.class)`, `@BeforeEach`, `@DisplayName`
 - **No `@RunWith`, `@Before`, `@Category`**
-- **Never mock the Context object** — always `new Rems[Feature][Action]Context(...)`
+- **Never mock the Context object** — always `new [Feature][Action]Context(...)`
 - **`userStep` always uses `doAnswer`** (not `doReturn`) to set user on the context
 - **`verifyAccessFunctionStep` always uses `doNothing`**
-- **`MockedStatic<RemsHttpRequestUtils>`** — only add if the step injects `HttpServletRequest`
-- **`verify(logService)`** — only add if the step injects and calls `RemsLogService`
+- **`MockedStatic<HttpRequestUtils>`** — only add if the step injects `HttpServletRequest`
+- **`verify(logService)`** — only add if the step injects and calls a log service
 - **Service returns populated entity list** in success tests — never `Collections.emptyList()`
 - **`assertThrows` uses the actual exception class** thrown in the step's code — not assumed
 
@@ -139,6 +139,6 @@ Achieve this by:
 - Do not stub `userStep` with `doReturn` — always `doAnswer`
 - Do not stub service with `Collections.emptyList()` in success tests
 - Do not add `MockedStatic` to a step test if the step does not inject `HttpServletRequest`
-- Do not call `verify(logService)` if the step does not inject `RemsLogService`
+- Do not call `verify(logService)` if the step does not inject a log service
 - Do not use real PII — use `<USER_ID>`, `<GROUP_NAME>` as placeholders
 - Do not declare the task complete until all tests compile, pass, and the full suite remains green

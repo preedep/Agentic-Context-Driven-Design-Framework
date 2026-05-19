@@ -9,18 +9,23 @@ A structured, reusable library of AI agent definitions, prompt files, and projec
 ```
 agent-framework/
 ├── core/                        # Project-agnostic agents and prompts
+│   ├── fsd/                     # Functional Specification Document template and review
 │   ├── ba-analysis/             # Business analysis: user stories, acceptance criteria
+│   ├── tech-spec/               # Technical specification generation (API, Batch, DB)
+│   ├── tdd/                     # TDD workflow: Red→Green→Refactor cycle
+│   ├── unit-test/               # Unit test generation (JUnit, Playwright)
+│   ├── e2e-test/                # E2E test analysis, script generation
+│   ├── developer-coding/        # Spring Boot development coding standards
 │   ├── code-review/             # Code review standards and checklists
 │   ├── code-to-spec/            # Generate Confluence specs from source code
-│   ├── developer-coding/        # Spring Boot development coding standards
 │   ├── dependency-update/       # Automated Java dependency update process
-│   ├── e2e-test/                # E2E test analysis, script generation
-│   ├── tech-spec/               # Technical specification generation (API, Batch, DB)
-│   └── unit-test/               # Unit test generation (JUnit, Playwright)
+│   ├── nfr/                     # Non-Functional Requirements standards (logging, security, K8s)
+│   └── tech-stack/              # Reference technology stack and architectural patterns
 │
 ├── projects/
 │   └── acme-pay/                # Example: ACME payment processing system
 │       ├── AGENTS.md            # Master entry point for acme-pay
+│       ├── fsd/                 # Functional Specification Documents for this project
 │       ├── backend/             # Spring Boot 3 / Java 17 backend
 │       ├── frontend/            # React 18 / TypeScript / MUI v6 frontend
 │       ├── e2e-test/            # Project-specific E2E config and scripts
@@ -241,20 +246,78 @@ output/payment-gateway/technical-spec/
 
 ---
 
+## TDD Workflow — End-to-End
+
+The framework follows a strict **FSD → Test → Code** sequence. Each step feeds the next.
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  1. FSD          core/fsd/FSD_TEMPLATE.md                           │
+│     Write or receive the Functional Specification Document          │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────────────┐
+│  2. BA Analysis  core/ba-analysis/AGENTS.md                         │
+│     Extract user stories, acceptance criteria, open questions       │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────────────┐
+│  3. Tech Spec    core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md        │
+│     Generate API spec, DB schema, validation rules, error codes,    │
+│     sequence diagrams                                               │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────────────┐
+│  4. Test Cases   core/unit-test/AGENTS.md                           │
+│     (RED)        core/e2e-test/ANALYZE_TEST_CASE.md                 │
+│     Generate failing unit tests + E2E test scripts FROM the spec    │
+│     ⚠️  Commit tests BEFORE writing any production code             │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────────────┐
+│  5. Implementation core/developer-coding/AGENTS.md                  │
+│     (GREEN)        core/tdd/TDD_CYCLE.md                            │
+│     Write minimum code to pass all failing tests                    │
+│     Apply Usecase → Step pattern + NFR requirements                 │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────────────┐
+│  6. Refactor     core/tdd/TDD_CYCLE.md (Phase 3)                    │
+│     Clean code, enforce naming, verify NFR compliance               │
+│     All tests remain green                                          │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────────────┐
+│  7. Code Review  core/code-review/REVIEW_STANDARD.md                │
+│     Review against FSD + tech spec + NFR across 7 dimensions        │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────────────────┐
+│  8. E2E Report   projects/<p>/e2e-test/PRE_SCRIPT_EXCEL.md          │
+│     Run Playwright tests, embed screenshots, update Excel report    │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Agent Index
 
 ### Core Agents (project-agnostic)
 
 | Agent | Path | Use When |
 |---|---|---|
-| BA Analysis | [`core/ba-analysis/AGENTS.md`](core/ba-analysis/AGENTS.md) | Transform raw requirements into user stories and acceptance criteria |
+| FSD | [`core/fsd/AGENTS.md`](core/fsd/AGENTS.md) | Author or review a Functional Specification Document |
+| BA Analysis | [`core/ba-analysis/AGENTS.md`](core/ba-analysis/AGENTS.md) | Transform FSD into user stories and acceptance criteria |
+| Tech Spec | [`core/tech-spec/AGENTS.md`](core/tech-spec/AGENTS.md) | Generate API, Batch, or Database technical specifications from FSD |
+| TDD | [`core/tdd/AGENTS.md`](core/tdd/AGENTS.md) | Run Red→Green→Refactor cycle; enforce test-first development |
+| Unit Test | [`core/unit-test/AGENTS.md`](core/unit-test/AGENTS.md) | Generate JUnit 5 backend tests or Playwright frontend tests |
+| E2E Test | [`core/e2e-test/AGENTS.md`](core/e2e-test/AGENTS.md) | Analyze test cases and generate Playwright scripts |
+| Developer Coding | [`core/developer-coding/AGENTS.md`](core/developer-coding/AGENTS.md) | Write new Spring Boot code following project standards |
 | Code Review | [`core/code-review/AGENTS.md`](core/code-review/AGENTS.md) | Review a branch for performance, code smell, security, and test coverage |
 | Code to Spec | [`core/code-to-spec/AGENTS.md`](core/code-to-spec/AGENTS.md) | Generate a Confluence API spec from existing Spring Boot source code |
-| Developer Coding | [`core/developer-coding/AGENTS.md`](core/developer-coding/AGENTS.md) | Write new Spring Boot code following project standards |
 | Dependency Update | [`core/dependency-update/AGENTS.md`](core/dependency-update/AGENTS.md) | Automatically update Java library versions across multiple repos |
-| E2E Test | [`core/e2e-test/AGENTS.md`](core/e2e-test/AGENTS.md) | Analyze test cases and generate Playwright scripts |
-| Tech Spec | [`core/tech-spec/AGENTS.md`](core/tech-spec/AGENTS.md) | Generate API, Batch, or Database technical specifications from FSD |
-| Unit Test | [`core/unit-test/AGENTS.md`](core/unit-test/AGENTS.md) | Generate JUnit 5 backend tests or Playwright frontend tests |
+| NFR | [`core/nfr/AGENTS.md`](core/nfr/AGENTS.md) | Non-Functional Requirements: logging, security, cloud-agnostic design, Kubernetes |
+| Tech Stack | [`core/tech-stack/AGENTS.md`](core/tech-stack/AGENTS.md) | Reference architecture and technology stack patterns |
 
 ### Example Project Agents (acme-pay)
 

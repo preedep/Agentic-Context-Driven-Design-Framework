@@ -6,10 +6,10 @@ Load these files before running this prompt:
 
 | File | Purpose |
 |---|---|
-| `agent-framework/projects/rems/AGENTS.md` | REMS architecture, feature domains, UI routes |
-| `agent-framework/projects/rems/e2e-test/REMS_E2E_CONFIG.md` | E2E test structure, auth flow, MUI locator patterns |
+| `agent-framework/projects/acme-pay/AGENTS.md` | Project architecture, feature domains, UI routes |
+| `agent-framework/projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md` | E2E test structure, auth flow, MUI locator patterns |
 
-> For non-REMS projects: replace the files above with the equivalent project AGENTS.md and E2E config.
+> Replace the paths above with your own project's AGENTS.md and E2E config.
 > If you have not loaded the files above, stop and load them first.
 > The instructions below assume that context is already present.
 

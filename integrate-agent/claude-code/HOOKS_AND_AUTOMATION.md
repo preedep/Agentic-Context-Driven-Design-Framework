@@ -127,7 +127,7 @@ Project-level hooks take precedence over user-level for the same event.
   "permissions": {
     "allow": [
       "Read(agent-framework/**)",
-      "Write(agent-framework/projects/rems/**)",
+      "Write(agent-framework/projects/acme-pay/**)",
       "Write(output/**)",
       "Bash(cat agent-framework/**)"
     ]
@@ -163,12 +163,12 @@ Claude Code can be invoked non-interactively via `claude -p` (print mode). Use t
 ```bash
 # Generate tech spec from FSD non-interactively
 claude -p "
-Read agent-framework/projects/rems/AGENTS.md.
-Run agent-framework/core/tech-spec/GENERATE_API_TECH_SPEC.md with:
+Read agent-framework/projects/acme-pay/AGENTS.md.
+Run agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md with:
 - FSD: $(cat path/to/fsd.md)
-- Feature slug: block-word
-- Project: rems
-Write output to output/block-word/technical-spec/
+- Feature slug: payment-gateway
+- Project: acme-pay
+Write output to output/payment-gateway/technical-spec/
 " --output-format json > spec-result.json
 ```
 

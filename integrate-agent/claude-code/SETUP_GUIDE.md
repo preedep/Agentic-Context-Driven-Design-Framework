@@ -17,7 +17,7 @@ your-project/
 ├── CLAUDE.md                        ← references agent-framework/ by relative path
 ├── agent-framework/
 │   ├── core/
-│   ├── projects/rems/
+│   ├── projects/acme-pay/
 │   └── integrate-agent/
 └── src/
 ```
@@ -78,7 +78,7 @@ This project uses the Multi-Agent AI Automation Framework in `agent-framework/`.
 | Unit test generation                   | `agent-framework/core/unit-test/AGENTS.md` |
 | E2E test / Playwright                  | `agent-framework/core/e2e-test/AGENTS.md` |
 | Dependency update (multi-repo)         | `agent-framework/core/dependency-update/AGENTS.md` |
-| REMS (all tasks)                       | `agent-framework/projects/rems/AGENTS.md` |
+| Project context (all tasks)            | `agent-framework/projects/acme-pay/AGENTS.md` |
 ```
 
 ---
@@ -94,7 +94,7 @@ Add to `.claude/settings.json` (project-level):
   "permissions": {
     "allow": [
       "Read(agent-framework/**)",
-      "Write(agent-framework/projects/rems/**)",
+      "Write(agent-framework/projects/acme-pay/**)",
       "Write(output/**)"
     ]
   }
@@ -124,18 +124,15 @@ claude
 
 ## How to Trigger Each Core Module
 
-The standard loading order for **REMS tasks**:
+The standard loading order for any project task:
 
 ```
-1. @agent-framework/projects/rems/AGENTS.md              ← REMS architecture rules (always first)
-2. @agent-framework/projects/rems/<domain>/AGENTS.md     ← backend or frontend rules
-3. @agent-framework/projects/rems/<task-prompt>.md       ← REMS-specific prompt (preferred)
-   OR @agent-framework/core/<module>/<PROMPT>.md         ← core prompt (when no REMS version exists)
+1. @agent-framework/projects/<name>/AGENTS.md              ← project architecture rules (always first)
+2. @agent-framework/projects/<name>/<domain>/AGENTS.md     ← backend or frontend rules
+3. @agent-framework/core/<module>/<PROMPT>.md              ← core prompt
 ```
 
-> **`core/` vs `projects/rems/`** — Use `projects/rems/*` prompt files for all actual REMS work.
-> The `core/` modules are generic templates for building new project adapters.
-> REMS has its own prompt files for tech-spec, unit-test, and e2e-test that include REMS-specific rules.
+> Always load the project AGENTS.md first — it provides the package root, error code prefix, API base path, and naming conventions that every prompt depends on.
 
 ---
 
@@ -147,32 +144,29 @@ The standard loading order for **REMS tasks**:
 Read @agent-framework/core/ba-analysis/AGENTS.md.
 
 Follow the Process Steps (1–6) with:
-- Document: @docs/fsd-block-word.pdf
-- Project context: REMS, Spring Boot backend, React 18 frontend
+- Document: @projects/acme-pay/fsd/payment-gateway-fsd.md
+- Project context: acme-pay, Spring Boot backend, React 18 frontend
 
 Produce: user-stories.md, data-flow.md, glossary.md, open-questions.md
-Save all four files to output/block-word/ba/
+Save all four files to output/payment-gateway/ba/
 ```
 
 ---
 
 ### Module 2 — `tech-spec` (FSD → Technical Specification)
 
-> **REMS:** Use `projects/rems/tech-spec/REMS_API_TECH_SPEC.md` (or BATCH / DATABASE variant).
-> The `core/` router is for non-REMS projects that don't have a project-specific prompt yet.
-
 ```
-Read @agent-framework/projects/rems/AGENTS.md.
+Read @agent-framework/projects/acme-pay/AGENTS.md.
+Read @agent-framework/core/nfr/AGENTS.md.
+Read @agent-framework/core/tech-stack/AGENTS.md.
 
-Run @agent-framework/projects/rems/tech-spec/REMS_API_TECH_SPEC.md with:
-- FSD: @docs/fsd-block-word.pdf
-- FEATURE_NAME: block-word
-- HTTP_METHOD: POST
-- API_PATH: /api/rems-parameterandconfig/v1/block-word/search
-- CURRENT_DATE: 2026-04-30
+Run @agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md with:
+- FSD: @projects/acme-pay/fsd/payment-gateway-fsd.md
+- FEATURE_SLUG: payment-gateway
+- CURRENT_DATE: {{TODAY}}
 
-Generate the full REMS API technical specification.
-Write output to output/block-word/technical-spec/api-specification.md
+Generate the full technical specification.
+Write output to output/payment-gateway/technical-spec/
 ```
 
 ---
@@ -183,12 +177,12 @@ Write output to output/block-word/technical-spec/api-specification.md
 Read @agent-framework/core/code-to-spec/AGENTS.md.
 
 Run @agent-framework/core/code-to-spec/GENERATE_API_SPEC.md with:
-- HTTP_METHOD: GET
-- API_PATH: /api/rems-parameterandconfig/v1/block-word/search
+- HTTP_METHOD: POST
+- API_PATH: /api/acme-pay/v1/payment/submit
 - SOURCE_ROOT: src/main/java
 
 Trace the controller → usecase → steps and generate the API specification document.
-Write output to output/block-word/technical-spec/api-specification.md
+Write output to output/payment-gateway/technical-spec/api-specification.md
 ```
 
 ---
@@ -199,12 +193,12 @@ Write output to output/block-word/technical-spec/api-specification.md
 Read @agent-framework/core/code-review/AGENTS.md.
 
 Run @agent-framework/core/code-review/REVIEW_STANDARD.md with:
-- BRANCH_NAME: feature/block-word-search
-- SPEC_FILE: @output/block-word/technical-spec/api-specification.md
-- AGENTS_REF: @agent-framework/projects/rems/backend/AGENTS.md
+- BRANCH_NAME: feature/payment-gateway
+- SPEC_FILE: @output/payment-gateway/technical-spec/api-specification.md
+- AGENTS_REF: @agent-framework/projects/acme-pay/backend/AGENTS.md
 
 Perform all 7 review dimensions and write the review report to
-output/block-word/review/review-report-2026-04-30.md
+output/payment-gateway/review/review-report-{{TIMESTAMP}}.md
 ```
 
 ---
@@ -212,17 +206,16 @@ output/block-word/review/review-report-2026-04-30.md
 ### Module 5 — `developer-coding` (Standards-Guided Code Generation)
 
 > Instructions are inline in AGENTS.md — no separate prompt file.
-> Load `projects/rems/backend/AGENTS.md` first — it overrides generic coding rules with REMS-specific ones (`@Autowired`, `JdbcTemplate`, `@PostMapping`, Vavr Try, etc.).
+> Load `projects/acme-pay/backend/AGENTS.md` first — it defines the Usecase/Step pattern, `@Autowired`, `JdbcTemplate`, and Vavr Try conventions.
 
 ```
-Read @agent-framework/projects/rems/AGENTS.md.
-Read @agent-framework/projects/rems/backend/AGENTS.md.
+Read @agent-framework/projects/acme-pay/AGENTS.md.
+Read @agent-framework/projects/acme-pay/backend/AGENTS.md.
 
 Implement a new POST endpoint:
-- API_PATH: /api/rems-parameterandconfig/v1/block-word/search
-- HTTP_METHOD: POST (all REMS endpoints are POST)
-- Feature: search block words by keyword with pagination
-- Mirror existing pattern from: @src/main/java/th/co/scb/rems/restapi/parameterandconfig/usecase/systemconfig/
+- API_PATH: /api/acme-pay/v1/payment/submit
+- HTTP_METHOD: POST
+- Feature: submit outbound payment transaction with validation and audit logging
 
 Generate all layers: Controller method, Usecase interface + impl, Context, Steps, Service, Repository, Entity, Mapper, DTOs.
 Place files in the correct package path under src/main/java/
@@ -230,61 +223,45 @@ Place files in the correct package path under src/main/java/
 
 ---
 
-### Module 6 — `unit-test` (Source → JUnit 5 / Playwright Tests)
-
-> Core module defines rules; actual prompt files are in `projects/rems/`.
-
-**Backend (JUnit 5):**
+### Module 6 — `unit-test` (Source → JUnit 5 Tests)
 
 ```
-Read @agent-framework/projects/rems/backend/AGENTS.md.
+Read @agent-framework/projects/acme-pay/AGENTS.md.
+Read @agent-framework/projects/acme-pay/backend/AGENTS.md.
+Read @output/payment-gateway/technical-spec/api-specification.md.
+Read @output/payment-gateway/technical-spec/validation-rules.md.
+Read @output/payment-gateway/technical-spec/error-codes.md.
 
-Run @agent-framework/projects/rems/backend/BE_UNIT_TEST.md with:
-- TARGET: RemsBlockWordSearchGetBlockWordStep
-- SOURCE_ROOT: src/main/java/th/co/scb/rems
-- TEST_ROOT: src/test/java/th/co/scb/rems
+Generate JUnit 5 test stubs for:
+- Controller: PaymentGatewayController
+- UseCase Impl: CreatePaymentUseCaseImpl
+- Steps: ValidatePaymentStep, SavePaymentStep
 
-Generate JUnit 5 tests for the Step class.
-Coverage target ≥ 80%. Include happy path, business exception, SQL exception cases.
-Write output to the correct path under TEST_ROOT.
-```
+Rules:
+- Tests must COMPILE but FAIL (production classes do not exist yet)
+- @ExtendWith(MockitoExtension.class) only — no JUnit 4
+- Never mock the Context object — always instantiate with new
+- Every test maps to a spec requirement — add traceability comment at the top
 
-**Frontend (Playwright):**
-
-```
-Read @agent-framework/projects/rems/frontend/AGENTS.md.
-
-Run @agent-framework/projects/rems/frontend/FE_UNIT_TEST.md with:
-- COMPONENT: BlockWordSearchPage
-- COMPONENT_PATH: src/features/block-word/BlockWordSearchPage.tsx
-- BASE_URL: https://rems-sit.se.scb.co.th
-- AUTH_SESSION_FILE: playwright/.auth/session.json
-
-Generate Playwright TypeScript tests covering:
-1. Search with valid inputs → results table shown
-2. Search returns no results → empty state shown
-3. Submit with empty required field → validation error shown
-Write to e2e/tests/block-word.spec.ts
+Write test files to: src/test/java/com/acme/pay/restapi/paymentgateway/
 ```
 
 ---
 
 ### Module 7 — `e2e-test` (Test Cases → Playwright Script)
 
-> **REMS:** Use `projects/rems/e2e-test/REMS_E2E_CONFIG.md` — it bundles the REMS-specific Playwright config, auth session, and selector conventions in one prompt.
-> The 2-step `core/e2e-test/` process is for non-REMS projects only.
-
 ```
-Read @agent-framework/projects/rems/AGENTS.md.
+Read @agent-framework/projects/acme-pay/AGENTS.md.
+Read @agent-framework/projects/acme-pay/e2e-test/ACMEPAY_E2E_CONFIG.md.
+Read @output/payment-gateway/ba/user-stories.md.
 
-Run @agent-framework/projects/rems/e2e-test/REMS_E2E_CONFIG.md with:
-- TEST_CASE_FILE: @test-cases/block-word-test-cases.xlsx
-- BASE_URL: https://rems-sit.se.scb.co.th
+Generate Playwright TypeScript E2E tests for:
+- BASE_URL: https://acme-pay-sit.example.com
 - AUTH_SESSION_FILE: playwright/.auth/session.json
-- FEATURE_NAME: block-word
+- FEATURE_NAME: payment-gateway
 
-Generate the Playwright TypeScript E2E test file.
-Write to e2e/tests/block-word-e2e.spec.ts
+Cover all acceptance criteria from user-stories.md.
+Write to: e2e/tests/payment-gateway.spec.ts
 ```
 
 ---
@@ -299,7 +276,7 @@ Read @agent-framework/core/dependency-update/AGENTS.md.
 Help me configure config/update-dependencies.yaml for:
 - LIBRARY: spring-boot-starter-parent
 - NEW_VERSION: 3.5.10
-- TARGET_REPOS: [rems-backend, rems-frontend-bff]
+- TARGET_REPOS: [acme-pay-backend, acme-pay-bff]
 - GIT_TOKEN: (set as env var GIT_TOKEN — do not hardcode)
 
 Show the complete YAML config and the command to run the update script.
@@ -319,27 +296,27 @@ python update_dependencies.py
 **Reference multiple files in one message:**
 
 ```
-Read @agent-framework/projects/rems/AGENTS.md and @docs/fsd-block-word.pdf
-then run @agent-framework/projects/rems/tech-spec/REMS_API_TECH_SPEC.md.
+Read @agent-framework/projects/acme-pay/AGENTS.md and @projects/acme-pay/fsd/payment-gateway-fsd.md
+then run @agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md.
 ```
 
 **Tell Claude Code where to write output:**
 
 ```
-Write the output to output/block-word/technical-spec/ using the UPPER_SNAKE_CASE.md naming convention.
+Write the output to output/payment-gateway/technical-spec/ using the UPPER_SNAKE_CASE.md naming convention.
 ```
 
 **Resume a session mid-task:**
 
 ```
-Continue from where we left off — we were generating the API spec for block-word.
+Continue from where we left off — we were generating the API spec for payment-gateway.
 The controller analysis is done. Now analyze the usecase and steps.
 ```
 
 **Apply the quality checklist after generation:**
 
 ```
-Apply the quality checklist from @agent-framework/projects/rems/tech-spec/REMS_API_TECH_SPEC.md
+Apply the quality checklist from @agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md
 to the output you just produced. List any items that fail.
 ```
 
@@ -348,8 +325,8 @@ to the output you just produced. List any items that fail.
 ```bash
 claude -p "Read @agent-framework/core/code-review/AGENTS.md and \
 @agent-framework/core/code-review/REVIEW_STANDARD.md. \
-Review branch feature/block-word-search against \
-@output/block-word/technical-spec/api-specification.md"
+Review branch feature/payment-gateway against \
+@output/payment-gateway/technical-spec/api-specification.md"
 ```
 
 ---
