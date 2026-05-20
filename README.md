@@ -70,116 +70,185 @@ When a new team onboards, they run `./onboard.sh` — it scaffolds their project
 
 ---
 
-## Context & Navigation Map
+## SDLC Process Map
 
-The diagram below shows how the framework modules connect. Arrows mean "load this context before running" or "routes to".
+This framework maps directly to the Software Development Life Cycle. Every SDLC phase has a corresponding set of prompts, context files, and outputs.
+
+### Phase Overview
+
+| # | SDLC Phase | Framework Module | Key Prompt File | Output |
+|---|---|---|---|---|
+| 0 | **Planning** | `core/planning/` | `FEATURE_PLAN.md` | Feature Plan + Gate Checklist |
+| 1 | **Requirements** | `core/fsd/` | `FSD_TEMPLATE.md` | Functional Specification Document |
+| 2 | **Analysis** | `core/ba-analysis/` | `AGENTS.md` | User Stories + Acceptance Criteria |
+| 3 | **Architecture** | `core/adr/` + `core/architecture/` | `ADR_TEMPLATE.md` | Architecture Decision Records |
+| 4 | **Technical Design** | `core/tech-spec/` | `GENERATE_TECH_SPEC_ROUTER.md` | API / Batch / DB Technical Spec |
+| 5 | **Test Design (RED)** | `core/unit-test/` + `core/e2e-test/` | `AGENTS.md` / `GEN_SCRIPT_FROM_TC.md` | Failing test stubs (unit + E2E) |
+| 6 | **Implementation (GREEN)** | `core/coding/<lang>/` + `core/tdd/` | `TDD_CYCLE.md` | Production source code |
+| 7 | **Code Review** | `core/code-review/` + `core/nfr/` | `REVIEW_STANDARD.md` | Review report (7 dimensions) |
+| 8 | **E2E Verification** | `core/e2e-test/` | `GEN_SCRIPT_FROM_TC.md` | PASS/FAIL E2E report + screenshots |
+| 9 | **Documentation** | `core/code-to-spec/` | `GENERATE_API_SPEC.md` | Confluence API spec page |
+| — | **NFR (cross-cutting)** | `core/nfr/` | `AGENTS.md` | Applied at phases 5, 6, 7 |
+| — | **Dependency Mgmt** | `core/dependency-update/` | `AGENTS.md` | Bumped versions across repos |
+
+### SDLC Flow Diagram
 
 ```mermaid
-graph TD
-    DEV([Developer / AI Tool])
-    DEV -->|every feature starts here| PLAN["core/planning/FEATURE_PLAN.md\nPlanning Gate"]
-    PLAN -->|gate passed| MASTER["projects/acme-pay/AGENTS.md\nMaster Entry Point"]
+flowchart TD
+    DEV(["👤 Developer / AI Tool"])
 
-    subgraph PROJECT["projects/acme-pay/"]
-        MASTER --> SVC["services/<name>/AGENTS.md"]
-        MASTER --> ADR_IDX["adr/INDEX.md"]
-        MASTER --> FE_A["frontend/AGENTS.md"]
-        MASTER --> E2E_CFG["e2e-test/ACMEPAY_E2E_CONFIG.md"]
-        MASTER --> ROUTER["tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md"]
+    %% Phase 0 — Planning
+    subgraph P0["Phase 0 · Planning"]
+        PLAN["core/planning/FEATURE_PLAN.md\n───────────────\nOutput: feature-plan.md\n+ Gate Checklist ✓"]
     end
 
-    subgraph CORE_DESIGN["core/  —  Design & Specification"]
-        ADR_T["adr/ADR_TEMPLATE.md"]
-        ADR_R["adr/ADR_REVIEW.md"]
-        ADR_Q["adr/ADR_QUERY.md"]
-        ARCH["architecture/AGENTS.md"]
-        FSD["fsd/FSD_TEMPLATE.md"]
-        BA["ba-analysis/AGENTS.md"]
-        SPEC_R["tech-spec/GENERATE_TECH_SPEC_ROUTER.md"]
+    %% Phase 1 — Requirements
+    subgraph P1["Phase 1 · Requirements"]
+        FSD["core/fsd/FSD_TEMPLATE.md\n───────────────\nInput:  feature-plan.md\nOutput: feature-fsd.md"]
+        FSD_R["core/fsd/FSD_REVIEW.md\n───────────────\nReview & approve FSD"]
     end
 
-    subgraph CORE_BUILD["core/  —  Build & Test"]
-        TDD["tdd/TDD_CYCLE.md"]
-        UT["unit-test/AGENTS.md"]
-        E2E_A["e2e-test/ANALYZE_TEST_CASE.md"]
-        E2E_G["e2e-test/GEN_SCRIPT_FROM_TC.md"]
-        JAVA["coding/java/AGENTS.md"]
-        NODE["coding/nodejs/AGENTS.md"]
+    %% Phase 2 — Analysis
+    subgraph P2["Phase 2 · Analysis"]
+        BA["core/ba-analysis/AGENTS.md\n───────────────\nInput:  feature-fsd.md\nOutput: user-stories.md"]
     end
 
-    subgraph CORE_QUALITY["core/  —  Quality & Operations"]
-        REVIEW["code-review/REVIEW_STANDARD.md"]
-        CODE2SPEC["code-to-spec/GENERATE_API_SPEC.md"]
-        NFR["nfr/AGENTS.md\n(OWASP Top 10 Web+API)"]
-        DEPUPD["dependency-update/AGENTS.md"]
+    %% Phase 3 — Architecture
+    subgraph P3["Phase 3 · Architecture"]
+        ADR["core/adr/ADR_TEMPLATE.md\n───────────────\nOutput: ADR-xxx.md"]
+        ARCH["core/architecture/AGENTS.md\n───────────────\nLayer boundary rules"]
     end
 
-    ADR_IDX --> ADR_Q
-    ADR_Q --> ADR_T
-    ADR_T --> ADR_R
+    %% Phase 4 — Technical Design
+    subgraph P4["Phase 4 · Technical Design"]
+        SPEC["core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md\n───────────────\nInput:  feature-fsd.md\nOutput: api-spec + db-schema\n        + error-codes"]
+    end
 
-    MASTER --> FSD
-    FSD --> BA
-    BA --> SPEC_R
-    SPEC_R --> TDD
+    %% Phase 5 — Test Design RED
+    subgraph P5["Phase 5 · Test Design  🔴 RED"]
+        UT["core/unit-test/AGENTS.md\n───────────────\nOutput: *Test.java stubs\n(compile, FAIL)"]
+        E2E["core/e2e-test/GEN_SCRIPT_FROM_TC.md\n───────────────\nInput:  user-stories.md\nOutput: *.spec.ts (FAIL)"]
+    end
 
-    TDD -->|unit + integration tests| UT
-    TDD -->|E2E tests| E2E_G
-    E2E_CFG --> E2E_A
-    E2E_A --> E2E_G
+    %% Phase 6 — Implementation GREEN
+    subgraph P6["Phase 6 · Implementation  🟢 GREEN"]
+        TDD["core/tdd/TDD_CYCLE.md\n───────────────\nRed → Green → Refactor"]
+        CODE["core/coding/&lt;lang&gt;/AGENTS.md\n───────────────\nJava / Node.js / Go\nPython / .NET"]
+    end
 
-    TDD -->|implement GREEN| JAVA
-    TDD -->|implement GREEN| NODE
-    SVC -.->|coding standard| JAVA
-    SVC -.->|coding standard| NODE
+    %% Phase 7 — Code Review
+    subgraph P7["Phase 7 · Code Review"]
+        REVIEW["core/code-review/REVIEW_STANDARD.md\n───────────────\nInput:  branch diff\nOutput: review-report.md\n(7 dimensions)"]
+    end
 
-    ARCH -.->|layer boundary rules| JAVA
-    ARCH -.->|layer boundary rules| NODE
-    ARCH -.->|layer boundary rules| REVIEW
+    %% Phase 8 — E2E Verification
+    subgraph P8["Phase 8 · E2E Verification"]
+        E2ERUN["core/e2e-test/ANALYZE_TEST_CASE.md\n───────────────\nRun against SIT\nOutput: e2e-report.md\n+ screenshots"]
+    end
 
-    FE_A --> REVIEW
-    SVC --> REVIEW
-    SVC --> CODE2SPEC
+    %% Phase 9 — Documentation
+    subgraph P9["Phase 9 · Documentation"]
+        DOC["core/code-to-spec/GENERATE_API_SPEC.md\n───────────────\nInput:  source code\nOutput: Confluence API page"]
+    end
 
-    NFR -.->|OWASP + logging rules| TDD
-    NFR -.->|OWASP + logging rules| REVIEW
-    NFR -.->|OWASP + logging rules| JAVA
-    NFR -.->|OWASP + logging rules| NODE
+    %% Cross-cutting
+    NFR(["core/nfr/AGENTS.md\n─────────────\nOWASP · Logging\nSecurity · K8s"])
+    PROJECT(["projects/&lt;name&gt;/AGENTS.md\n─────────────\nURLs · DB · Error codes\nLoad FIRST for every task"])
 
-    classDef gate        fill:#922b21,color:#fff,stroke:#7b241c
-    classDef master      fill:#1a5276,color:#fff,stroke:#154360
-    classDef projectFile fill:#2471a3,color:#fff,stroke:#1a5276
-    classDef designCore  fill:#27ae60,color:#fff,stroke:#1e8449
-    classDef buildCore   fill:#1abc9c,color:#fff,stroke:#148f77
-    classDef qualityCore fill:#8e44ad,color:#fff,stroke:#6c3483
+    %% Main flow
+    DEV --> P0
+    P0 -->|gate passed ✓| P1
+    P1 --> P2
+    P2 --> P3
+    P2 --> P4
+    P4 --> P5
+    P5 --> P6
+    P6 --> P7
+    P7 -->|approved| P8
+    P8 --> P9
 
-    class PLAN gate
-    class MASTER master
-    class SVC,ADR_IDX,FE_A,E2E_CFG,ROUTER projectFile
-    class ADR_T,ADR_R,ADR_Q,ARCH,FSD,BA,SPEC_R designCore
-    class TDD,UT,E2E_A,E2E_G,JAVA,NODE buildCore
-    class REVIEW,CODE2SPEC,NFR,DEPUPD qualityCore
+    %% Cross-cutting wiring
+    PROJECT -.->|constants injected| P1
+    PROJECT -.->|constants injected| P4
+    PROJECT -.->|constants injected| P6
+    NFR -.->|OWASP + logging rules| P5
+    NFR -.->|OWASP + logging rules| P6
+    NFR -.->|OWASP + logging rules| P7
+    ARCH -.->|layer rules| P6
+    ARCH -.->|layer rules| P7
+
+    %% Internal phase links
+    FSD --> FSD_R
+    TDD --> CODE
+
+    %% Styles
+    classDef phase0   fill:#922b21,color:#fff,stroke:#7b241c
+    classDef phase1   fill:#1a5276,color:#fff,stroke:#154360
+    classDef phase2   fill:#1f618d,color:#fff,stroke:#154360
+    classDef phase3   fill:#117a65,color:#fff,stroke:#0e6655
+    classDef phase4   fill:#1e8449,color:#fff,stroke:#196f3d
+    classDef phase5   fill:#b7950b,color:#fff,stroke:#9a7d0a
+    classDef phase6   fill:#1abc9c,color:#fff,stroke:#148f77
+    classDef phase7   fill:#6c3483,color:#fff,stroke:#5b2c6f
+    classDef phase8   fill:#7d6608,color:#fff,stroke:#6e5c07
+    classDef phase9   fill:#2e4057,color:#fff,stroke:#273547
+    classDef crosscut fill:#626567,color:#fff,stroke:#515a5a
+
+    class PLAN phase0
+    class FSD,FSD_R phase1
+    class BA phase2
+    class ADR,ARCH phase3
+    class SPEC phase4
+    class UT,E2E phase5
+    class TDD,CODE phase6
+    class REVIEW phase7
+    class E2ERUN phase8
+    class DOC phase9
+    class NFR,PROJECT crosscut
 ```
 
 **Legend:**
-- **Red** — Planning Gate (`core/planning/`), mandatory entry point for every feature
-- **Dark blue** — master entry point (`projects/<name>/AGENTS.md`), always load first
-- **Mid blue** — project sub-module files (services, frontend, e2e config, ADR index)
-- **Green** — `core/` Design & Specification modules (ADR, FSD, BA Analysis, Tech Spec)
-- **Teal** — `core/` Build & Test modules (TDD cycle, unit tests, E2E, coding standards)
-- **Purple** — `core/` Quality & Operations modules (code review, code-to-spec, NFR, dependency update)
+| Colour | SDLC Phase |
+|---|---|
+| 🔴 Red | Phase 0 — Planning Gate (mandatory start) |
+| 🔵 Dark blue | Phase 1 — Requirements (FSD) |
+| 🔵 Mid blue | Phase 2 — Analysis (BA / User Stories) |
+| 🟢 Dark green | Phase 3 — Architecture (ADR) |
+| 🟢 Green | Phase 4 — Technical Design (Tech Spec) |
+| 🟡 Amber | Phase 5 — Test Design RED |
+| 🩵 Teal | Phase 6 — Implementation GREEN |
+| 🟣 Purple | Phase 7 — Code Review |
+| 🟤 Brown | Phase 8 — E2E Verification |
+| ⚫ Navy | Phase 9 — Documentation |
+| ⚫ Grey | Cross-cutting (NFR, Project constants) |
 
 ### How to Read the Diagram
 
-Each path through the diagram is a **loading order recipe**. Every feature enters at the red Planning Gate node, passes through the master entry point, then flows down to the relevant core modules.
+1. Every feature **starts at Phase 0** (Planning Gate) — no FSD, no code until the gate passes.
+2. The **grey nodes** (Project constants + NFR) are loaded alongside every phase — they supply values and rules without being a phase themselves.
+3. Each node shows: the **prompt file to run**, the **input it needs**, and the **output it produces**.
+4. Solid arrows = sequential flow. Dashed arrows = context injected into that phase.
 
 ---
 
 ## TDD Workflow — End-to-End
 
-The framework follows a strict **Plan → FSD → Test → Code** sequence. A Planning Gate must pass before FSD authoring begins — no code, no tests, no spec until scope, risks, and open questions are resolved.
+The framework follows a strict **Plan → Spec → Test → Code** sequence enforced by the Planning Gate. Tests are written and committed **before** production code.
 
-Full sequence: Planning Gate → FSD → BA Analysis → Tech Spec → Test Cases (RED) → Implementation (GREEN) → Refactor → Code Review → E2E Report. Each step's output is the next step's input — tests are written and committed **before** production code.
+Full sequence:
+
+```
+Phase 0: Planning Gate  →  Feature Plan + Gate Checklist
+Phase 1: FSD            →  Functional Specification Document
+Phase 2: BA Analysis    →  User Stories + Acceptance Criteria
+Phase 3: Architecture   →  ADR + Layer Boundary Rules
+Phase 4: Tech Spec      →  API / DB / Batch Technical Spec
+Phase 5: Test Design    →  Failing unit + E2E test stubs  🔴 RED
+Phase 6: Implement      →  Production code (make tests pass) 🟢 GREEN + REFACTOR
+Phase 7: Code Review    →  7-dimension review report
+Phase 8: E2E Run        →  PASS/FAIL report + screenshots
+Phase 9: Docs           →  Confluence API spec page
+```
 
 See [`core/planning/AGENTS.md`](core/planning/AGENTS.md) for the gate checklist and [`core/tdd/AGENTS.md`](core/tdd/AGENTS.md) for the full phase-by-phase breakdown.
 
