@@ -1,29 +1,27 @@
 # Quick Start
 
-Get your project running with this framework in under 10 minutes.
+This framework gives your AI tool structured context files so it writes code, tests, and specs
+that match your project's architecture — consistently, across every feature.
+
+**You will be up and running in 4 steps.**
 
 ---
 
 ## Step 1 — Scaffold your project
 
-**Option A — automated (recommended)**
-
-`onboard.sh` has two commands:
-
-| Command | When to use |
-|---|---|
-| `./onboard.sh` | First time — scaffold a brand new project |
-| `./onboard.sh add-service <project>` | Later — add a new service to an existing project |
-| `./onboard.sh --help` | Full usage reference |
-
-**New project:**
+Run the wizard from the framework root:
 
 ```bash
 ./onboard.sh
 ```
 
-The wizard asks for project name, shared infrastructure constants (URLs, DB, Confluence), then loops asking for each backend service — **name + language** — so you can define any mix:
+It will ask you:
+- Project name, description, organization
+- Environment URLs (SIT / DEV / UAT), database, API base path, error code prefix, Confluence space
+- Each backend service — **name + language** (repeat until done, press Enter to finish)
+- Whether you have a frontend
 
+Example service loop:
 ```
 Service 1 name: payment-api       Language: java
 Service 2 name: notification-bff  Language: nodejs
@@ -31,204 +29,185 @@ Service 3 name: risk-engine       Language: go
 Service 4 name:                   ← press Enter to finish
 ```
 
-Generates:
+Supported languages: `java` | `nodejs` | `go` | `python` | `dotnet`
 
+**What gets created:**
 ```
 projects/<your-project>/
-├── AGENTS.md                              ← shared constants (URLs, DB, Confluence, error prefix)
+├── AGENTS.md                        ← shared constants (URLs, DB, error prefix, Confluence)
 ├── services/
-│   ├── payment-api/AGENTS.md             ← Java placeholders + coding agent
-│   ├── notification-bff/AGENTS.md        ← Node.js placeholders + coding agent
-│   └── risk-engine/AGENTS.md             ← Go placeholders + coding agent
-├── frontend/AGENTS.md                    ← optional
+│   ├── payment-api/AGENTS.md        ← Java: base package, build tool, coding standard
+│   ├── notification-bff/AGENTS.md   ← Node.js: npm scope, framework, coding standard
+│   └── risk-engine/AGENTS.md        ← Go: module path, framework, coding standard
+├── frontend/AGENTS.md               ← if you said yes to frontend
 ├── e2e-test/<PROJECT>_E2E_CONFIG.md
 ├── tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
 ├── adr/INDEX.md
 └── fsd/README.md
 ```
 
-**Add a service later (e.g. a new Go microservice added 3 months in):**
+Your project folder is also added to `.gitignore` automatically — real URLs and credentials
+never get committed to this repo.
 
-```bash
-./onboard.sh add-service <your-project>
-```
-
-Asks for the new service name + language + details, then:
-- Creates `projects/<your-project>/services/<new-service>/AGENTS.md`
-- Appends the new service row to the Sub-Module Map in the root `AGENTS.md` automatically
-
-Supported languages: `java` | `nodejs` | `go` | `python` | `dotnet`
-
-**Option B — manual**
-
-```bash
-cp -r projects/acme-pay projects/<your-project>
-```
-
-Then continue to Step 2 to fill in the values yourself.
+> **Adding a service later?**
+> ```bash
+> ./onboard.sh add-service <your-project>
+> ```
+> Creates the new service AGENTS.md and updates the Sub-Module Map in root AGENTS.md automatically.
 
 ---
 
-## Step 2 — Fill in your project constants
+## Step 2 — Review the generated files
 
-> **Skip this step if you used `onboard.sh`** — it already did the replacements. Just review the generated files to verify.
+Open `projects/<your-project>/AGENTS.md` and check:
 
-For manual setup, fill in two layers of AGENTS.md files.
+- [ ] System Context table is accurate (org name, architecture, DB type, auth provider)
+- [ ] All environment URLs are correct
+- [ ] Architecture Decisions reflect your team's actual rules
+- [ ] Do NOT list covers things the AI should never do in your project
 
-### Layer 1 — `projects/<your-project>/AGENTS.md` (shared across all services)
+Then open each `services/<name>/AGENTS.md` and check:
 
-| Placeholder | Replace with | Example |
-|---|---|---|
-| `{{PROJECT_NAME}}` | project slug | `trade-finance` |
-| `{{BASE_URL_SIT}}` | SIT environment URL | `https://myapp-sit.example.com` |
-| `{{BASE_URL_DEV}}` | DEV environment URL | `https://myapp-dev.example.com` |
-| `{{BASE_URL_UAT}}` | UAT environment URL | `https://myapp-uat.example.com` |
-| `{{CONFLUENCE_SPACE}}` | Confluence space key | `TRADEFINANCE` |
-| `{{DB_SCHEMA}}` | default DB schema | `dbo`, `public` |
-| `{{ERROR_CODE_PREFIX}}` | error code prefix | `TRD`, `PAY`, `INV` |
-| `{{API_BASE_PATH}}` | API base path | `/api/trade-finance/v1` |
-| `{{AUTH_SESSION_FILE}}` | Playwright auth session | `playwright/.auth/session.json` |
+- [ ] Language-specific placeholder values are correct (package name, module path, etc.)
+- [ ] `{{CODING_AGENT}}` points to the right core coding standard for this service
 
-### Layer 2 — `projects/<your-project>/services/<name>/AGENTS.md` (one per service)
-
-Each service defines its own language-specific placeholders. Create one file per service.
-
-**Java (Spring Boot)**
-| Placeholder | Example |
-|---|---|
-| `{{BASE_PACKAGE}}` | `com.example.tradefinance` |
-| `{{BUILD_TOOL}}` | `maven` / `gradle` |
-| `{{JAVA_VERSION}}` | `17`, `21` |
-| `{{CODING_AGENT}}` | `core/java-developer-coding/AGENTS.md` |
-
-**Node.js (TypeScript)**
-| Placeholder | Example |
-|---|---|
-| `{{NPM_SCOPE}}` | `@example/trade-finance` |
-| `{{NODE_VERSION}}` | `20`, `22` |
-| `{{HTTP_FRAMEWORK}}` | `express` / `fastify` |
-| `{{CODING_AGENT}}` | `core/nodejs-developer-coding/AGENTS.md` |
-
-**Go**
-| Placeholder | Example |
-|---|---|
-| `{{GO_MODULE}}` | `github.com/example/trade-finance` |
-| `{{GO_VERSION}}` | `1.22` |
-| `{{HTTP_FRAMEWORK}}` | `gin` / `echo` / `chi` |
-| `{{CODING_AGENT}}` | `core/go-developer-coding/AGENTS.md` |
-
-**Python**
-| Placeholder | Example |
-|---|---|
-| `{{PYTHON_PACKAGE}}` | `trade_finance` |
-| `{{PYTHON_VERSION}}` | `3.12` |
-| `{{HTTP_FRAMEWORK}}` | `fastapi` / `django` |
-| `{{CODING_AGENT}}` | `core/python-developer-coding/AGENTS.md` |
-
-**\.NET**
-| Placeholder | Example |
-|---|---|
-| `{{ROOT_NAMESPACE}}` | `Example.TradeFinance` |
-| `{{DOTNET_VERSION}}` | `8` |
-| `{{CODING_AGENT}}` | `core/dotnet-developer-coding/AGENTS.md` |
-
-> **Tip:** `{{CODING_AGENT}}` is the key connector — it tells the AI which coding standard to apply for that service. Each service sets its own value independently.
+> **That's all the setup.** Steps 3 and 4 are about using the framework — you can come back
+> to these when you're ready to run your first task.
 
 ---
 
-## Step 3 — Gitignore your project folder
+## Step 3 — Pick your AI tool
 
-> **Skip this step if you used `onboard.sh`** — it already added the entry.
+Choose the guide that matches the tool your team uses:
 
-Real project configs contain internal URLs and credentials — never commit them.
+| Tool | Guide |
+|---|---|
+| Claude Code (CLI / IDE) | [`integrate-agent/claude-code/GUIDE.md`](integrate-agent/claude-code/GUIDE.md) |
+| GitHub Copilot (VS Code / JetBrains) | [`integrate-agent/github-copilot/GUIDE.md`](integrate-agent/github-copilot/GUIDE.md) |
+| OpenAI / ChatGPT | [`integrate-agent/openai-codex/GUIDE.md`](integrate-agent/openai-codex/GUIDE.md) |
+| Any LLM (generic) | [`integrate-agent/generic-llm/GUIDE.md`](integrate-agent/generic-llm/GUIDE.md) |
 
-Add this line to `.gitignore`:
-
-```
-projects/<your-project>/
-```
+Each guide has the one-time setup for that tool (how to wire the framework in) and
+copy-paste prompts for every task in the TDD workflow.
 
 ---
 
 ## Step 4 — Run your first prompt
 
-Every task follows the same two-step pattern regardless of AI tool:
+Every task follows the same loading pattern:
 
 ```
-1. Load:  projects/<your-project>/AGENTS.md      ← always load this first
-2. Run:   core/<module>/...                       ← pick the prompt for your task
+1. Load: projects/<your-project>/AGENTS.md               ← always first — shared constants
+2. Load: projects/<your-project>/services/<name>/AGENTS.md  ← for service tasks
+3. Run:  core/<module>/<PROMPT>.md                       ← the task
 ```
 
-**Example — generate an API tech spec:**
+**Start here — write an FSD for a new feature:**
+```
+Load: projects/<your-project>/AGENTS.md
+Run:  core/fsd/FSD_TEMPLATE.md
+```
+
+**Generate a tech spec from the FSD:**
 ```
 Load: projects/<your-project>/AGENTS.md
 Run:  projects/<your-project>/tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
-Input: [paste your FSD document]
+Input: [paste your FSD]
 ```
 
-**Example — write backend code for a specific service:**
-```
-Load: projects/<your-project>/AGENTS.md                       ← shared constants
-Load: projects/<your-project>/services/payment-api/AGENTS.md  ← service language + coding agent
-Run:  {{CODING_AGENT}}   ← resolved from the service AGENTS.md (e.g. core/java-developer-coding/AGENTS.md)
-```
-Each service loads its own AGENTS.md which tells the AI which coding standard to apply.
-A Java service uses `core/java-developer-coding/AGENTS.md`, a Node.js service uses `core/nodejs-developer-coding/AGENTS.md`, etc.
-
-**Example — TDD full cycle:**
+**Write backend code for a service:**
 ```
 Load: projects/<your-project>/AGENTS.md
-Run:  core/fsd/FSD_TEMPLATE.md           → author FSD
-Run:  core/ba-analysis/AGENTS.md         → extract user stories
-Run:  core/tech-spec/AGENTS.md           → generate tech spec
-Run:  core/tdd/TDD_CYCLE.md              → RED → GREEN → REFACTOR
-Run:  core/code-review/REVIEW_STANDARD.md
+Load: projects/<your-project>/services/payment-api/AGENTS.md
+Run:  core/java-developer-coding/AGENTS.md        ← or nodejs / go / python / dotnet
 ```
+
+**Full TDD cycle (FSD → code → review):**
+```
+Load: projects/<your-project>/AGENTS.md
+Run:  core/fsd/FSD_TEMPLATE.md                    → 1. write FSD
+Run:  core/ba-analysis/AGENTS.md                  → 2. extract user stories
+Run:  core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md → 3. generate tech spec
+Run:  core/tdd/TDD_CYCLE.md                       → 4. RED → GREEN → REFACTOR
+Run:  core/code-review/REVIEW_STANDARD.md         → 5. review
+```
+
+See your AI tool guide (Step 3) for ready-to-paste versions of all these prompts.
 
 ---
 
-## Using as a Git Submodule (recommended)
+## Reference
 
-If you want to pin a version of the framework inside your own repo:
+### What's in the box
+
+```
+core/            ← reusable prompt templates — no project-specific data, works for any project
+projects/        ← your project constants and service-specific overrides (gitignored)
+integrate-agent/ ← tool wiring guides (Claude Code, Copilot, OpenAI, generic LLM)
+shared/          ← HTML templates reused across projects
+onboard.sh       ← project scaffold wizard
+```
+
+Full module list: [README.md — Agent Index](README.md#agent-index)
+
+### Manual setup (without onboard.sh)
+
+If you prefer to set up manually instead of using the wizard:
+
+```bash
+cp -r projects/acme-pay projects/<your-project>
+```
+
+Then edit `projects/<your-project>/AGENTS.md` and replace every placeholder value.
+Two layers to fill:
+
+**Layer 1 — root AGENTS.md (shared across all services)**
+
+| Placeholder | Example |
+|---|---|
+| `{{PROJECT_NAME}}` | `trade-finance` |
+| `{{BASE_URL_SIT}}` | `https://myapp-sit.example.com` |
+| `{{BASE_URL_DEV}}` | `https://myapp-dev.example.com` |
+| `{{BASE_URL_UAT}}` | `https://myapp-uat.example.com` |
+| `{{CONFLUENCE_SPACE}}` | `TRADEFINANCE` |
+| `{{DB_SCHEMA}}` | `dbo` |
+| `{{ERROR_CODE_PREFIX}}` | `TRD` |
+| `{{API_BASE_PATH}}` | `/api/trade-finance/v1` |
+| `{{AUTH_SESSION_FILE}}` | `playwright/.auth/session.json` |
+
+**Layer 2 — services/\<name\>/AGENTS.md (one per service, language-specific)**
+
+| Language | Key placeholders |
+|---|---|
+| Java | `{{BASE_PACKAGE}}`, `{{BUILD_TOOL}}`, `{{JAVA_VERSION}}` |
+| Node.js | `{{NPM_SCOPE}}`, `{{NODE_VERSION}}`, `{{HTTP_FRAMEWORK}}` |
+| Go | `{{GO_MODULE}}`, `{{GO_VERSION}}`, `{{HTTP_FRAMEWORK}}` |
+| Python | `{{PYTHON_PACKAGE}}`, `{{PYTHON_VERSION}}`, `{{HTTP_FRAMEWORK}}` |
+| .NET | `{{ROOT_NAMESPACE}}`, `{{DOTNET_VERSION}}` |
+
+All services also set `{{CODING_AGENT}}` — the path to the core coding standard for that language.
+
+Add your project to `.gitignore`:
+```
+projects/<your-project>/
+```
+
+### Using as a git submodule
+
+To pin a specific version of the framework inside your own repo:
 
 ```bash
 git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
 git submodule set-branch --branch main agent-framework
+git submodule update --init --recursive
 ```
 
-Then keep your project config in your own repo:
-
+Keep your project config in your own repo (never in this framework repo):
 ```
-your-project-repo/
-├── agent-framework/        ← this framework (submodule, read-only)
-│   ├── core/
-│   ├── projects/
-│   └── integrate-agent/
+your-repo/
+├── agent-framework/     ← this framework (submodule)
 └── projects/
-    └── <your-project>/     ← your AGENTS.md and constants (never committed to this repo)
-        └── AGENTS.md
+    └── <your-project>/  ← your AGENTS.md — gitignored in this framework, committed in your repo
 ```
 
----
-
-## Choosing an AI Tool
-
-| Tool | Guide |
-|---|---|
-| Claude Code | [`integrate-agent/claude-code/GUIDE.md`](integrate-agent/claude-code/GUIDE.md) |
-| GitHub Copilot | [`integrate-agent/github-copilot/GUIDE.md`](integrate-agent/github-copilot/GUIDE.md) |
-| OpenAI / ChatGPT | [`integrate-agent/openai-codex/GUIDE.md`](integrate-agent/openai-codex/GUIDE.md) |
-| Any LLM | [`integrate-agent/generic-llm/GUIDE.md`](integrate-agent/generic-llm/GUIDE.md) |
-
----
-
-## What's in the Box
-
-```
-core/            ← reusable prompt templates (no project-specific data)
-projects/        ← your project constants + project-specific overrides
-integrate-agent/ ← tool wiring guides (Claude Code, Copilot, OpenAI, generic LLM)
-shared/          ← HTML templates reused across projects
-```
-
-Full module reference: see the **Agent Index** in [README.md](README.md#agent-index).
+Full submodule reference: [`integrate-agent/SHARED_SETUP.md`](integrate-agent/SHARED_SETUP.md)
