@@ -22,31 +22,7 @@ The pattern is always the same:
 
 ### Step 1 — Add the framework to your project
 
-**Recommended: git submodule**
-
-```bash
-git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
-git submodule set-branch --branch main agent-framework
-git submodule update --init --recursive
-```
-
-Update later with:
-```bash
-git submodule update --remote agent-framework
-git add agent-framework && git commit -m "chore: update agent-framework"
-```
-
-**Alternative: clone alongside**
-
-```
-parent/
-├── your-project/       ← your project
-└── agent-framework/    ← this framework
-```
-
-**Air-gapped: copy only what you need**
-
-Copy `projects/<name>/` + the specific `core/` modules you use into your project repo.
+See [../SHARED_SETUP.md](../SHARED_SETUP.md) for the git submodule command and all alternative setup options (sibling folder, air-gapped copy).
 
 ---
 

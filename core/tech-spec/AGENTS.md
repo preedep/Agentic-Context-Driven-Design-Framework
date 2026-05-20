@@ -42,10 +42,6 @@ Use this agent when you need to:
 
 ---
 
-## Outputs
-
-| Output | Description |
-|---|---|
 ## Placeholder Reference
 
 | Placeholder | Required | Possible Values / Format | Example |

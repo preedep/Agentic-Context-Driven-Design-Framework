@@ -18,32 +18,7 @@ GitHub Copilot Chat is built into VS Code and JetBrains. It picks up your reposi
 
 ### Step 1 — Add the framework to your project
 
-**Recommended: git submodule**
-
-```bash
-git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
-git submodule set-branch --branch main agent-framework
-git submodule update --init --recursive
-```
-
-Update later with:
-```bash
-git submodule update --remote agent-framework
-git add agent-framework && git commit -m "chore: update agent-framework"
-```
-
-**Alternative: multi-root workspace (framework in a sibling folder)**
-
-Create `project.code-workspace`:
-```json
-{
-  "folders": [
-    { "path": "your-project",    "name": "Project" },
-    { "path": "agent-framework", "name": "AI Framework" }
-  ]
-}
-```
-Open with: `code project.code-workspace`
+See [../SHARED_SETUP.md](../SHARED_SETUP.md) for the git submodule command and alternative setup options (including multi-root workspace for VS Code).
 
 ---
 

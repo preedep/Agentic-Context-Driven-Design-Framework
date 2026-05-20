@@ -51,13 +51,4 @@ The integration guides in each sub-folder show exactly how to do step 1–3 in t
 
 ## Consuming the Framework via Git Submodule
 
-To embed this framework in your own project repository, add it as a git submodule:
-
-```bash
-git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
-git submodule set-branch --branch main agent-framework
-git add .gitmodules agent-framework
-git commit -m "Add Agentic Context-Driven Design Framework as submodule"
-```
-
-See the [Git Submodule section in the root README](../README.md#using-this-framework-as-a-git-submodule) for the full setup guide, update instructions, and recommended directory layout.
+See [SHARED_SETUP.md](SHARED_SETUP.md) for the full git submodule setup guide, update instructions, and directory layout.

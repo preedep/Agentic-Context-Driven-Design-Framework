@@ -18,28 +18,7 @@ Use `@file` to inject any framework file directly into a prompt.
 
 ### Step 1 — Add the framework to your project
 
-**Recommended: git submodule**
-
-```bash
-git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
-git submodule set-branch --branch main agent-framework
-git submodule update --init --recursive
-```
-
-Update later with:
-```bash
-git submodule update --remote agent-framework
-git add agent-framework && git commit -m "chore: update agent-framework"
-```
-
-**Alternative: framework already inside your repo**
-
-```
-your-project/
-├── CLAUDE.md
-├── agent-framework/   ← this framework
-└── src/
-```
+See [../SHARED_SETUP.md](../SHARED_SETUP.md) for the git submodule command and alternative setup options.
 
 ---
 

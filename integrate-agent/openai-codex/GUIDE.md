@@ -18,28 +18,7 @@ OpenAI tools (ChatGPT UI and the OpenAI API) do not read files from disk automat
 
 ### Step 1 — Add the framework to your project
 
-**Recommended: git submodule**
-
-```bash
-git submodule add https://github.com/preedep/Agentic-Context-Driven-Design-Framework agent-framework
-git submodule set-branch --branch main agent-framework
-git submodule update --init --recursive
-```
-
-Update later with:
-```bash
-git submodule update --remote agent-framework
-git add agent-framework && git commit -m "chore: update agent-framework"
-```
-
-**Alternative: same repository**
-```
-your-project/
-├── agent-framework/   ← this framework
-├── src/
-└── scripts/
-    └── run_agent.py
-```
+See [../SHARED_SETUP.md](../SHARED_SETUP.md) for the git submodule command and alternative setup options.
 
 ---
 
