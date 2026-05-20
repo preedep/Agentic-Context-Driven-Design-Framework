@@ -857,7 +857,7 @@ generate_tech_spec_router() {
   mkdir -p "$spec_dir"
 
   cat > "${spec_dir}/${PROJECT_UPPER}_TECH_SPEC_ROUTER.md" <<EOF
-# ${project} — Tech Spec Router
+# ${PROJECT} — Tech Spec Router
 
 Load after [\`../AGENTS.md\`](../AGENTS.md).
 
