@@ -147,7 +147,7 @@ Use this agent when you need to:
 
 ---
 
-## Do NOT
+## DO NOT
 
 - Do not use `fmt.Println()` or `log.Print()` for logging — use the structured logger
 - Do not put business logic in HTTP handler functions — delegate to service layer

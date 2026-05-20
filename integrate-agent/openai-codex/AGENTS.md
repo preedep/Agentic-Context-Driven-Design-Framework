@@ -44,7 +44,7 @@ Fill these before sending any chat prompt or API call. Replace each `{{PLACEHOLD
 | `{{TODAY}}` | Tech Spec | Alias for `{{CURRENT_DATE}}` — today's date | `2026-05-19` |
 | `{{FSD_CONTENT}}` | Tech Spec, BA Analysis | Full text of the FSD — paste inline or read from file | *(paste FSD markdown)* |
 
-> **API usage:** use the `fill_prompt()` helper in `SETUP_GUIDE.md` to replace all placeholders programmatically before constructing the API call. For chat UI, use your text editor's find-and-replace before pasting.
+> **API usage:** use the `fill_prompt()` helper in `GUIDE.md` to replace all placeholders programmatically before constructing the API call. For chat UI, use your text editor's find-and-replace before pasting.
 
 ## Outputs
 - Text output in the chat / API response

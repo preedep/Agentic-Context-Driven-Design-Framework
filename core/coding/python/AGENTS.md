@@ -145,7 +145,7 @@ Use this agent when you need to:
 
 ---
 
-## Do NOT
+## DO NOT
 
 - Do not use `print()` for logging — use the structured logger
 - Do not put business logic in route handlers — delegate to service layer

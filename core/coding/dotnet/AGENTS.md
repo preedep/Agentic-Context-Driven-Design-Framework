@@ -146,7 +146,7 @@ Use this agent when you need to:
 
 ---
 
-## Do NOT
+## DO NOT
 
 - Do not expose EF Core entities directly in API responses — always map to DTOs
 - Do not put business logic in controllers — delegate to service layer
