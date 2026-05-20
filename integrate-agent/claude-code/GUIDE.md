@@ -37,6 +37,7 @@ This project uses the Agentic Context-Driven Design Framework in `agent-framewor
 ### Module map
 | Task | File to run |
 |---|---|
+| **Plan feature + gate checklist**   | `agent-framework/core/planning/FEATURE_PLAN.md` |
 | Write / review FSD                  | `agent-framework/core/fsd/FSD_TEMPLATE.md` |
 | FSD → user stories                  | `agent-framework/core/ba-analysis/AGENTS.md` |
 | User stories → tech spec            | `agent-framework/core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md` |
@@ -101,11 +102,39 @@ Replace `acme-pay` below with your own project folder name.
 
 ---
 
+### Task 0 — Planning Gate (start every feature here)
+
+```
+Read @agent-framework/core/planning/AGENTS.md
+Read @agent-framework/projects/acme-pay/AGENTS.md
+
+Run @agent-framework/core/planning/FEATURE_PLAN.md
+
+Inputs:
+  FEATURE_NAME:    Payment Gateway
+  FEATURE_SLUG:    payment-gateway
+  AUTHOR:          [your name]
+  REVIEWER:        [tech lead name]
+  FEATURE_REQUEST: Allow operators to submit outbound payment transactions
+                   with validation, duplicate detection, and audit logging.
+
+Write output to: projects/acme-pay/fsd/payment-gateway-plan.md
+```
+
+After the AI produces the plan:
+1. Open `projects/acme-pay/fsd/payment-gateway-plan.md`
+2. Work through every item in `core/planning/AGENTS.md#gate-checklist`
+3. All items checked → gate passed → continue to Task 1
+4. Any item unchecked → update the plan and re-check before continuing
+
+---
+
 ### Task 1 — Write an FSD
 
 ```
 Read @agent-framework/core/fsd/AGENTS.md
 Read @agent-framework/projects/acme-pay/AGENTS.md
+Read @agent-framework/projects/acme-pay/fsd/payment-gateway-plan.md   # ← Feature Plan from Task 0
 Read @agent-framework/projects/acme-pay/fsd/existing-feature-fsd.md   # optional: style reference
 
 Use @agent-framework/core/fsd/FSD_TEMPLATE.md to write an FSD for:
@@ -113,7 +142,8 @@ Use @agent-framework/core/fsd/FSD_TEMPLATE.md to write an FSD for:
 - FEATURE_SLUG: payment-gateway
 - DESCRIPTION: Allow operators to submit outbound payment transactions with validation and audit logging
 
-Fill all sections. Flag any open questions you cannot answer.
+Fill all sections. Use the Feature Plan for scope, actors, and acceptance criteria.
+Flag any open questions not already resolved in the plan.
 Write output to: projects/acme-pay/fsd/payment-gateway-fsd.md
 ```
 

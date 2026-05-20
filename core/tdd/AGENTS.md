@@ -6,6 +6,25 @@ Guide AI agents and developers through the TDD practice within the framework's w
 
 ---
 
+## Pre-condition — Planning Gate
+
+**The TDD workflow may not begin until the Planning Gate is passed.**
+
+Before Step 1, a Feature Plan must exist and every item in the gate checklist must be checked:
+
+```
+Step 0: Planning Gate  ← MANDATORY before any other step
+  └─ Produce a Feature Plan and verify the gate checklist
+     Tool: core/planning/FEATURE_PLAN.md
+     Gate: core/planning/AGENTS.md#gate-checklist
+     Output: projects/{{PROJECT}}/fsd/{{FEATURE_SLUG}}-plan.md
+     ⛔ Do not proceed to Step 1 until every checklist item is checked
+```
+
+The Feature Plan output becomes the input context for FSD authoring in Step 1.
+
+---
+
 ## TDD Workflow — Step by Step
 
 This is the full workflow from business requirement to deployed, reviewed code:
@@ -14,6 +33,7 @@ This is the full workflow from business requirement to deployed, reviewed code:
 Step 1: FSD
   └─ Author or receive Functional Specification Document
      Tool: core/fsd/FSD_TEMPLATE.md
+     Input: projects/{{PROJECT}}/fsd/{{FEATURE_SLUG}}-plan.md  ← from Step 0
      Output: projects/{{PROJECT}}/fsd/{{FEATURE_SLUG}}-fsd.md
 
 Step 2: BA Analysis
@@ -148,6 +168,7 @@ Use the `{{FEATURE_SLUG}}` prefix in all test IDs for traceability.
 
 ## DO NOT
 
+- Do not start Step 1 (FSD) without a passed Planning Gate — `core/planning/AGENTS.md`
 - Do not write implementation code before test cases exist for all layers (unit + integration + E2E)
 - Do not mock the database for repository tests — SQL behavior requires a real schema
 - Do not write tests that only assert the test framework works (e.g., `assertEquals(1, 1)`)

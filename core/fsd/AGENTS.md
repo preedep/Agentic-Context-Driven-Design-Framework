@@ -8,15 +8,29 @@ This module lives in `core/` — the structure and sections are generic and appl
 
 ---
 
+## Pre-condition
+
+A Feature Plan must exist and the Planning Gate must be passed before authoring an FSD.
+
+```
+core/planning/FEATURE_PLAN.md  →  Planning Gate passed  →  FSD (here)
+```
+
+Load the Feature Plan (`projects/{{PROJECT_NAME}}/fsd/{{FEATURE_SLUG}}-plan.md`) as input
+context when running `FSD_TEMPLATE.md` — it pre-fills scope, actors, and acceptance criteria.
+
+---
+
 ## FSD Role in the Workflow
 
 ```
-FSD (authored here)
-  → core/ba-analysis/     (extract user stories + acceptance criteria)
-  → core/tech-spec/       (generate API / Batch / DB technical spec)
-  → core/unit-test/       (generate test cases from spec)
-  → core/tdd/             (implement code guided by tests)
-  → core/code-review/     (review implementation against FSD + spec)
+Planning Gate (core/planning/)
+  → FSD (authored here)
+    → core/ba-analysis/     (extract user stories + acceptance criteria)
+    → core/tech-spec/       (generate API / Batch / DB technical spec)
+    → core/unit-test/       (generate test cases from spec)
+    → core/tdd/             (implement code guided by tests)
+    → core/code-review/     (review implementation against FSD + spec)
 ```
 
 ---

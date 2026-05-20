@@ -102,9 +102,20 @@ Every task follows the same loading pattern:
 3. Run:  core/<module>/<PROMPT>.md                       ← the task
 ```
 
-**Start here — write an FSD for a new feature:**
+**Every feature starts with the Planning Gate — before FSD, before code:**
 ```
 Load: projects/<your-project>/AGENTS.md
+Run:  core/planning/FEATURE_PLAN.md
+Input: [paste feature request or ticket]
+Output: projects/<your-project>/fsd/<feature-slug>-plan.md
+```
+Then check every item in `core/planning/AGENTS.md#gate-checklist`.
+Gate passed? → proceed. Any item unchecked? → resolve it first.
+
+**Write the FSD (after the gate passes):**
+```
+Load: projects/<your-project>/AGENTS.md
+Load: projects/<your-project>/fsd/<feature-slug>-plan.md   ← context from the plan
 Run:  core/fsd/FSD_TEMPLATE.md
 ```
 
@@ -122,9 +133,10 @@ Load: projects/<your-project>/services/payment-api/AGENTS.md
 Run:  core/java-developer-coding/AGENTS.md        ← or nodejs / go / python / dotnet
 ```
 
-**Full TDD cycle (FSD → code → review):**
+**Full workflow (planning → code → review):**
 ```
 Load: projects/<your-project>/AGENTS.md
+Run:  core/planning/FEATURE_PLAN.md               → 0. plan + gate
 Run:  core/fsd/FSD_TEMPLATE.md                    → 1. write FSD
 Run:  core/ba-analysis/AGENTS.md                  → 2. extract user stories
 Run:  core/tech-spec/GENERATE_TECH_SPEC_ROUTER.md → 3. generate tech spec

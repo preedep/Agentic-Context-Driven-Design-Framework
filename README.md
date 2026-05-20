@@ -164,9 +164,11 @@ Each path through the diagram is a **loading order recipe**. Trace from the mast
 
 ## TDD Workflow — End-to-End
 
-The framework follows a strict **FSD → Test → Code** sequence: FSD → BA Analysis → Tech Spec → Test Cases (RED) → Implementation (GREEN) → Refactor → Code Review → E2E Report. Each step's output is the next step's input — tests are written and committed **before** production code.
+The framework follows a strict **Plan → FSD → Test → Code** sequence. A Planning Gate must pass before FSD authoring begins — no code, no tests, no spec until scope, risks, and open questions are resolved.
 
-See [`core/tdd/AGENTS.md`](core/tdd/AGENTS.md) for the full phase-by-phase breakdown and rules.
+Full sequence: Planning Gate → FSD → BA Analysis → Tech Spec → Test Cases (RED) → Implementation (GREEN) → Refactor → Code Review → E2E Report. Each step's output is the next step's input — tests are written and committed **before** production code.
+
+See [`core/planning/AGENTS.md`](core/planning/AGENTS.md) for the gate checklist and [`core/tdd/AGENTS.md`](core/tdd/AGENTS.md) for the full phase-by-phase breakdown.
 
 ---
 
@@ -187,9 +189,10 @@ Identify the right prompt from the Agent Index below, then follow the tool-speci
 
 | Agent | Path | Use When |
 |---|---|---|
+| **Planning Gate** | [`core/planning/AGENTS.md`](core/planning/AGENTS.md) | **Start every feature here** — produce Feature Plan, pass gate checklist before FSD |
 | ADR | [`core/adr/AGENTS.md`](core/adr/AGENTS.md) | Author, review, or query Architecture Decision Records |
 | Architecture | [`core/architecture/AGENTS.md`](core/architecture/AGENTS.md) | Enforce Hexagonal or Microservice layer boundaries during design, coding, and review |
-| FSD | [`core/fsd/AGENTS.md`](core/fsd/AGENTS.md) | Author or review a Functional Specification Document |
+| FSD | [`core/fsd/AGENTS.md`](core/fsd/AGENTS.md) | Author or review a Functional Specification Document — requires Planning Gate to pass first |
 | BA Analysis | [`core/ba-analysis/AGENTS.md`](core/ba-analysis/AGENTS.md) | Transform FSD into user stories and acceptance criteria |
 | Tech Spec | [`core/tech-spec/AGENTS.md`](core/tech-spec/AGENTS.md) | Generate API, Batch, or Database technical specifications from FSD |
 | TDD | [`core/tdd/AGENTS.md`](core/tdd/AGENTS.md) | Run Red→Green→Refactor cycle; enforce test-first development |
