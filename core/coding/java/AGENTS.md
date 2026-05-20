@@ -42,13 +42,91 @@ New or modified Java source files placed in the correct package path.
 
 ---
 
+## Stack
+
+| Layer | Technology | Notes |
+|---|---|---|
+| Language | Java 17 LTS | Use records, sealed classes, pattern matching |
+| Framework | Spring Boot 3.x | Annotation-only config — no XML |
+| Data Access | JdbcTemplate | No JPA / Hibernate — explicit SQL only |
+| Build | Maven | Multi-module POM supported |
+| Testing | JUnit 5 + Mockito | `@ExtendWith(MockitoExtension.class)` only |
+| API Style | REST / JSON | OpenAPI 3 spec generated from code |
+| Auth | Spring Security + OAuth 2 / OIDC | SSO via Identity Provider |
+| Containerization | Docker | Multi-stage build; non-root user |
+| Orchestration | Kubernetes | Resource limits, probes, graceful shutdown required |
+
+> Override version values from the service `AGENTS.md` (`{{JAVA_VERSION}}`, `{{BUILD_TOOL}}`).
+
+---
+
+## Usecase → Step Pattern
+
+Every feature endpoint follows this strict layering:
+
+```java
+// Controller — thin HTTP layer
+@RestController
+public class PaymentController {
+    private final CreatePaymentUseCase useCase;
+
+    @PostMapping("/payments")
+    public ResponseEntity<ApiResponse> create(@Valid @RequestBody CreatePaymentRequest req) {
+        CreatePaymentContext ctx = new CreatePaymentContext(req);
+        useCase.execute(ctx);
+        return ResponseEntity.ok(ApiResponse.success(ctx.getResponse()));
+    }
+}
+
+// UseCase interface
+public interface CreatePaymentUseCase {
+    void execute(CreatePaymentContext ctx);
+}
+
+// UseCase implementation — orchestrates steps
+@Service
+public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
+    private final ValidatePaymentStep validate;
+    private final SavePaymentStep save;
+    private final PublishPaymentEventStep publish;
+
+    @Transactional
+    public void execute(CreatePaymentContext ctx) {
+        validate.execute(ctx);
+        save.execute(ctx);
+        publish.execute(ctx);
+    }
+}
+
+// Step — one atomic action
+@Component
+public class ValidatePaymentStep {
+    public void execute(CreatePaymentContext ctx) { ... }
+}
+
+// Context — shared state carrier between steps
+public class CreatePaymentContext {
+    private final CreatePaymentRequest request;
+    private CreatePaymentResponse response;
+    // getters + setters
+}
+```
+
+Rules:
+- One UseCase per operation — `CreatePaymentUseCase`, `SearchTransactionUseCase`
+- Each Step performs exactly one atomic action
+- Context carries all shared state — no method parameters for inter-step data
+- Steps MUST be independently unit-testable
+
+---
+
 ## Technical Requirements
 
 ### Core Technologies
-- **Java:** 1.8 or later (check project AGENTS.md for exact version)
-- **Spring Boot:** Check project AGENTS.md for version
-- **Database:** MySQL, SQL Server, DB2, or Azure SQL — check project
-- **Build Tool:** Maven
+- **Java:** see `{{JAVA_VERSION}}` in service AGENTS.md
+- **Spring Boot:** see project AGENTS.md for version
+- **Database:** see `{{DB_SCHEMA}}` in project AGENTS.md
+- **Build Tool:** see `{{BUILD_TOOL}}` in service AGENTS.md
 - **Containerization:** Docker
 
 ### Dependency Injection

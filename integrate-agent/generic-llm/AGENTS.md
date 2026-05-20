@@ -44,7 +44,7 @@ Fill these before sending any prompt. Replace each `{{PLACEHOLDER}}` with your p
 | `{{TODAY}}` | Tech Spec | Alias for `{{CURRENT_DATE}}` — today's date | `2026-05-19` |
 | `{{FSD_CONTENT}}` | Tech Spec, BA Analysis | Full text of the FSD — paste inline | *(paste FSD markdown)* |
 
-> **Tip:** open the prompt file in a text editor, do a global find-and-replace for each placeholder, then copy the filled result into your LLM. The `run-prompt.sh` helper in `SETUP_GUIDE.md` handles context assembly but not placeholder filling — do that step before running the script.
+> **Tip:** open the prompt file in a text editor, do a global find-and-replace for each placeholder, then copy the filled result into your LLM. The `run-prompt.sh` helper in `GUIDE.md` handles context assembly but not placeholder filling — do that step before running the script.
 
 ## Outputs
 - Text output from the LLM — copy to the correct output file manually

@@ -130,7 +130,7 @@ Input: [paste your FSD]
 ```
 Load: projects/<your-project>/AGENTS.md
 Load: projects/<your-project>/services/payment-api/AGENTS.md
-Run:  core/java-developer-coding/AGENTS.md        ← or nodejs / go / python / dotnet
+Run:  core/coding/java/AGENTS.md        ← or nodejs / go / python / dotnet
 ```
 
 **Full workflow (planning → code → review):**

@@ -245,7 +245,7 @@ In these cases:
 
 ---
 
-## Prerequisites
+## Pre-condition
 
 1. Python 3, Git, and Maven (`mvn`) installed
 2. Corporate Maven `settings.xml` available if required

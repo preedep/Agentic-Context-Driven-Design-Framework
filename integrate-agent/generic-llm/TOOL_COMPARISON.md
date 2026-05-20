@@ -30,7 +30,7 @@ Use this table to choose the right tool for each task type.
 | Unit test generation (while coding) | **GitHub Copilot** | Fastest inline test suggestion in editor |
 | Sensitive data / air-gapped environment | **Local LLM** | No data leaves the machine |
 | Multi-repo dependency update | **Claude Code** | Reads multiple repo files; orchestrates Bash commands |
-| Quick one-shot prompt verification | **Any (generic)** | Use `generic-llm/SETUP_GUIDE.md` baseline |
+| Quick one-shot prompt verification | **Any (generic)** | Use `generic-llm/GUIDE.md` baseline |
 | E2E Playwright script from Excel | **Claude Code** | Reads Excel, writes `.spec.ts` files automatically |
 
 ---
