@@ -11,6 +11,7 @@ A structured, reusable library of AI agent definitions, prompt files, and projec
 ```
 agent-framework/
 ├── core/                        # Project-agnostic agents and prompts
+│   ├── planning/                # Planning Gate — feature plan + gate checklist (step 0)
 │   ├── adr/                     # Architecture Decision Records (template, review, query)
 │   ├── architecture/            # Hexagonal and Microservice pattern rules and checklists
 │   ├── fsd/                     # Functional Specification Document template and review
@@ -19,32 +20,35 @@ agent-framework/
 │   ├── tdd/                     # TDD workflow: Red→Green→Refactor cycle
 │   ├── unit-test/               # Unit test generation (JUnit, Playwright)
 │   ├── e2e-test/                # E2E test analysis, script generation
-│   ├── java-developer-coding/   # Spring Boot development coding standards
+│   ├── java-developer-coding/   # Spring Boot coding standards
 │   ├── nodejs-developer-coding/ # Node.js / TypeScript / Express coding standards
 │   ├── code-review/             # Code review standards and checklists
 │   ├── code-to-spec/            # Generate Confluence specs from source code
 │   ├── dependency-update/       # Automated Java dependency update process
 │   ├── nfr/                     # NFR: logging, OWASP Top 10 (Web + API), security, K8s
-│   └── tech-stack/              # Reference technology stack and architectural patterns
+│   └── tech-stack/              # Reference architecture and technology stack patterns
 │
 ├── projects/
-│   └── acme-pay/                # Example: ACME payment processing system
-│       ├── AGENTS.md            # Master entry point for acme-pay
-│       ├── fsd/                 # Functional Specification Documents for this project
-│       ├── backend/             # Spring Boot 3 / Java 17 backend
-│       ├── frontend/            # React 18 / TypeScript / MUI v6 frontend
+│   └── acme-pay/                # Example: ACME payment processing system (Java + React)
+│       ├── AGENTS.md            # Master entry point — shared constants for all services
+│       ├── services/
+│       │   └── <service>/AGENTS.md  # Per-service: language, package, coding agent
+│       ├── frontend/AGENTS.md   # React 18 / TypeScript / MUI v6
+│       ├── fsd/                 # Feature Plans and Functional Specification Documents
 │       ├── e2e-test/            # Project-specific E2E config and scripts
-│       └── tech-spec/           # Project-specific tech spec prompts
-│           └── templates/       # Confluence HTML templates
+│       └── tech-spec/           # Project-specific tech spec router and templates
 │
 ├── integrate-agent/             # Tool integration guides
+│   ├── SHARED_SETUP.md          # Git submodule setup — shared by all tool guides
 │   ├── claude-code/             # Claude Code (CLI / IDE extension)
 │   ├── github-copilot/          # GitHub Copilot Chat (VS Code / JetBrains)
 │   ├── openai-codex/            # OpenAI Codex / ChatGPT (API + chat UI)
 │   └── generic-llm/             # Any LLM — portable baseline + tool comparison
 │
-└── shared/
-    └── templates/               # Shared HTML/XML templates across projects
+├── shared/
+│   └── templates/               # Shared HTML/XML templates across projects
+│
+└── onboard.sh                   # Project scaffold wizard (new project + add-service)
 ```
 
 ---
@@ -54,11 +58,11 @@ agent-framework/
 Three layers, one rule: **generic logic lives in `core/`, project-specific data lives in `projects/`, shared assets live in `shared/`.**
 
 - **`core/`** — prompt files that work for *any* project. No table names, no service URLs, no error codes hardcoded. Uses `{{PLACEHOLDER}}` variables instead.
-- **`projects/acme-pay/`** — fills those placeholders with real project values: database table names, error codes, Confluence space keys. Extends core, never duplicates it.
-- **`shared/`** — HTML/MD templates and the data dictionary used by both layers.
-- **`integrate-agent/`** — shows how to wire the framework into Claude Code, Copilot, OpenAI API, or any LLM.
+- **`projects/<name>/`** — fills those placeholders with real values per project. Two levels: a root `AGENTS.md` for shared constants (URLs, DB, error prefix), and one `services/<name>/AGENTS.md` per backend service for language-specific placeholders. Extends core, never duplicates it.
+- **`shared/`** — HTML/MD templates reused across projects.
+- **`integrate-agent/`** — wires the framework into Claude Code, Copilot, OpenAI API, or any LLM.
 
-When another team onboards (e.g., `projects/trade-finance/`), they copy the `projects/acme-pay/` pattern and fill it with their own constants. The `core/` prompts need zero changes.
+When a new team onboards, they run `./onboard.sh` — it scaffolds their project folder, fills placeholders, and adds one `services/<name>/AGENTS.md` per service for any mix of languages (Java, Node.js, Go, Python, .NET). The `core/` prompts need zero changes.
 
 ---
 
@@ -69,11 +73,12 @@ The diagram below shows how the framework modules connect. Arrows mean "load thi
 ```mermaid
 graph TD
     DEV([Developer / AI Tool])
-    DEV -->|every task starts here| MASTER["projects/acme-pay/AGENTS.md\nMaster Entry Point"]
+    DEV -->|every feature starts here| PLAN["core/planning/FEATURE_PLAN.md\nPlanning Gate"]
+    PLAN -->|gate passed| MASTER["projects/acme-pay/AGENTS.md\nMaster Entry Point"]
 
     subgraph PROJECT["projects/acme-pay/"]
+        MASTER --> SVC["services/<name>/AGENTS.md"]
         MASTER --> ADR_IDX["adr/INDEX.md"]
-        MASTER --> BE_A["backend/AGENTS.md"]
         MASTER --> FE_A["frontend/AGENTS.md"]
         MASTER --> E2E_CFG["e2e-test/ACMEPAY_E2E_CONFIG.md"]
         MASTER --> ROUTER["tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md"]
@@ -85,7 +90,6 @@ graph TD
         ADR_Q["adr/ADR_QUERY.md"]
         ARCH["architecture/AGENTS.md"]
         FSD["fsd/FSD_TEMPLATE.md"]
-        FSD_REV["fsd/FSD_REVIEW.md"]
         BA["ba-analysis/AGENTS.md"]
         SPEC_R["tech-spec/GENERATE_TECH_SPEC_ROUTER.md"]
     end
@@ -122,43 +126,48 @@ graph TD
 
     TDD -->|implement GREEN| JAVA
     TDD -->|implement GREEN| NODE
+    SVC -.->|coding standard| JAVA
+    SVC -.->|coding standard| NODE
 
     ARCH -.->|layer boundary rules| JAVA
     ARCH -.->|layer boundary rules| NODE
     ARCH -.->|layer boundary rules| REVIEW
 
-    BE_A --> REVIEW
-    BE_A --> CODE2SPEC
     FE_A --> REVIEW
+    SVC --> REVIEW
+    SVC --> CODE2SPEC
 
     NFR -.->|OWASP + logging rules| TDD
     NFR -.->|OWASP + logging rules| REVIEW
     NFR -.->|OWASP + logging rules| JAVA
     NFR -.->|OWASP + logging rules| NODE
 
-    classDef master     fill:#1a5276,color:#fff,stroke:#154360
+    classDef gate        fill:#922b21,color:#fff,stroke:#7b241c
+    classDef master      fill:#1a5276,color:#fff,stroke:#154360
     classDef projectFile fill:#2471a3,color:#fff,stroke:#1a5276
     classDef designCore  fill:#27ae60,color:#fff,stroke:#1e8449
     classDef buildCore   fill:#1abc9c,color:#fff,stroke:#148f77
     classDef qualityCore fill:#8e44ad,color:#fff,stroke:#6c3483
 
+    class PLAN gate
     class MASTER master
-    class ADR_IDX,BE_A,FE_A,E2E_CFG,ROUTER projectFile
-    class ADR_T,ADR_R,ADR_Q,ARCH,FSD,FSD_REV,BA,SPEC_R designCore
+    class SVC,ADR_IDX,FE_A,E2E_CFG,ROUTER projectFile
+    class ADR_T,ADR_R,ADR_Q,ARCH,FSD,BA,SPEC_R designCore
     class TDD,UT,E2E_A,E2E_G,JAVA,NODE buildCore
     class REVIEW,CODE2SPEC,NFR,DEPUPD qualityCore
 ```
 
 **Legend:**
-- **Dark blue** — master entry point (`projects/acme-pay/AGENTS.md`), always load first
-- **Mid blue** — project sub-module files (backend, frontend, e2e config, ADR index)
+- **Red** — Planning Gate (`core/planning/`), mandatory entry point for every feature
+- **Dark blue** — master entry point (`projects/<name>/AGENTS.md`), always load first
+- **Mid blue** — project sub-module files (services, frontend, e2e config, ADR index)
 - **Green** — `core/` Design & Specification modules (ADR, FSD, BA Analysis, Tech Spec)
 - **Teal** — `core/` Build & Test modules (TDD cycle, unit tests, E2E, coding standards)
 - **Purple** — `core/` Quality & Operations modules (code review, code-to-spec, NFR, dependency update)
 
 ### How to Read the Diagram
 
-Each path through the diagram is a **loading order recipe**. Trace from the master entry point down to know which files to load before running a prompt.
+Each path through the diagram is a **loading order recipe**. Every feature enters at the red Planning Gate node, passes through the master entry point, then flows down to the relevant core modules.
 
 ---
 
@@ -174,10 +183,12 @@ See [`core/planning/AGENTS.md`](core/planning/AGENTS.md) for the gate checklist 
 
 ## How to Use
 
-Every task follows the same two-step pattern regardless of AI tool:
+Every task follows the same pattern regardless of AI tool:
 
-1. **Load** `projects/<your-project>/AGENTS.md` — always first; defines all constants, architecture rules, and placeholder values.
-2. **Load and run** the target prompt file — fill all `{{PLACEHOLDER}}` variables from step 1.
+1. **Plan** — run `core/planning/FEATURE_PLAN.md`, pass the gate checklist
+2. **Load** `projects/<your-project>/AGENTS.md` — always first; defines all shared constants
+3. **Load** `projects/<your-project>/services/<name>/AGENTS.md` — for service-specific tasks
+4. **Run** the target prompt file from `core/<module>/`
 
 Identify the right prompt from the Agent Index below, then follow the tool-specific guide in `integrate-agent/` for the exact syntax.
 
@@ -201,7 +212,7 @@ Identify the right prompt from the Agent Index below, then follow the tool-speci
 | Java Developer Coding | [`core/java-developer-coding/AGENTS.md`](core/java-developer-coding/AGENTS.md) | Write new Spring Boot code following project standards |
 | Node.js Developer Coding | [`core/nodejs-developer-coding/AGENTS.md`](core/nodejs-developer-coding/AGENTS.md) | Write new Node.js / TypeScript code following project standards |
 | Code Review | [`core/code-review/AGENTS.md`](core/code-review/AGENTS.md) | Review a branch for performance, code smell, security, and test coverage |
-| Code to Spec | [`core/code-to-spec/AGENTS.md`](core/code-to-spec/AGENTS.md) | Generate a Confluence API spec from existing Spring Boot source code |
+| Code to Spec | [`core/code-to-spec/AGENTS.md`](core/code-to-spec/AGENTS.md) | Generate a Confluence API spec from existing source code |
 | Dependency Update | [`core/dependency-update/AGENTS.md`](core/dependency-update/AGENTS.md) | Automatically update Java library versions across multiple repos |
 | NFR | [`core/nfr/AGENTS.md`](core/nfr/AGENTS.md) | Non-Functional Requirements: logging, OWASP Top 10 (Web + API), security, Kubernetes |
 | Tech Stack | [`core/tech-stack/AGENTS.md`](core/tech-stack/AGENTS.md) | Reference architecture and technology stack patterns |
@@ -210,7 +221,7 @@ Identify the right prompt from the Agent Index below, then follow the tool-speci
 
 | Agent | Path | Use When |
 |---|---|---|
-| acme-pay Master | [`projects/acme-pay/AGENTS.md`](projects/acme-pay/AGENTS.md) | Starting point for any acme-pay task |
+| acme-pay Master | [`projects/acme-pay/AGENTS.md`](projects/acme-pay/AGENTS.md) | Starting point for any acme-pay task — load first |
 | acme-pay Backend | [`projects/acme-pay/backend/AGENTS.md`](projects/acme-pay/backend/AGENTS.md) | Write or review Spring Boot backend code |
 | acme-pay Frontend | [`projects/acme-pay/frontend/AGENTS.md`](projects/acme-pay/frontend/AGENTS.md) | Write or review React frontend code |
 | acme-pay Tech Spec | [`projects/acme-pay/tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md`](projects/acme-pay/tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md) | Generate API, Batch, or DB technical specs and Confluence pages |
@@ -240,4 +251,6 @@ Identify the right prompt from the Agent Index below, then follow the tool-speci
 
 ## Onboarding a New Project or Core Module
 
-See **[QUICKSTART.md](QUICKSTART.md)** for step-by-step instructions on adding a new project and the quality gate checklist. Adding a new core module follows the same pattern — create `core/<module-name>/AGENTS.md` + at least one `UPPER_SNAKE_CASE.md` prompt using `{{PLACEHOLDERS}}` only, then test with two different project contexts before committing.
+Run `./onboard.sh` to scaffold a new project interactively — it creates the folder structure, fills all placeholders, generates one `services/<name>/AGENTS.md` per service (any language mix), and adds the project to `.gitignore`. To add a service to an existing project later: `./onboard.sh add-service <project>`.
+
+Adding a new core module: create `core/<module-name>/AGENTS.md` + at least one `UPPER_SNAKE_CASE.md` prompt using `{{PLACEHOLDERS}}` only, then test with two different project contexts before committing. See [QUICKSTART.md](QUICKSTART.md) for details.
