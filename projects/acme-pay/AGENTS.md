@@ -1,5 +1,7 @@
 # acme-pay — Master Entry Point
 
+> **This is the Java (Spring Boot) example project.** For Node.js or Go projects, use this file as a structural template but replace the language-specific placeholders. See [QUICKSTART.md](../../QUICKSTART.md#step-2--fill-in-your-project-constants) for the full placeholder table by language.
+
 Load this file first before running any prompt in the acme-pay project.
 
 ---
@@ -22,10 +24,11 @@ Load this file first before running any prompt in the acme-pay project.
 
 These replace `{{PLACEHOLDERS}}` in all `core/` prompt files.
 
+### Common (all stacks)
+
 | Placeholder | Value |
 |---|---|
 | `{{PROJECT_NAME}}` | `acme-pay` |
-| `{{BASE_PACKAGE}}` | `com.acme.pay.restapi` |
 | `{{BASE_URL_SIT}}` | `https://acme-pay-sit.example.com` |
 | `{{BASE_URL_DEV}}` | `https://acme-pay-dev.example.com` |
 | `{{BASE_URL_UAT}}` | `https://acme-pay-uat.example.com` |
@@ -35,6 +38,15 @@ These replace `{{PLACEHOLDERS}}` in all `core/` prompt files.
 | `{{ERROR_CODE_PREFIX}}` | `PAY` |
 | `{{API_BASE_PATH}}` | `/api/acme-pay` |
 | `{{AUTH_SESSION_FILE}}` | `playwright/.auth/session.json` |
+
+### Java-specific (replace or remove for other stacks)
+
+| Placeholder | Value |
+|---|---|
+| `{{BASE_PACKAGE}}` | `com.acme.pay.restapi` |
+| `{{BUILD_TOOL}}` | `maven` |
+| `{{JAVA_VERSION}}` | `17` |
+| `{{CODING_AGENT}}` | `core/java-developer-coding/AGENTS.md` |
 
 ---
 
@@ -61,7 +73,7 @@ Active patterns: each service is structured with Hexagonal Architecture (domain 
 | Domain | AGENTS.md | Use When |
 |---|---|---|
 | ADR | [`adr/INDEX.md`](adr/INDEX.md) | Query or add architecture decision records |
-| Backend | [`backend/AGENTS.md`](backend/AGENTS.md) | Spring Boot code, unit tests, code review |
+| Backend | [`backend/AGENTS.md`](backend/AGENTS.md) | Backend code (uses `{{CODING_AGENT}}`), unit tests, code review |
 | Frontend | [`frontend/AGENTS.md`](frontend/AGENTS.md) | React code, component tests, FSD specs |
 | Tech Spec | [`tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md`](tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md) | Generate API/Batch/DB specs from FSD |
 | E2E Test | [`e2e-test/ACMEPAY_E2E_CONFIG.md`](e2e-test/ACMEPAY_E2E_CONFIG.md) | Playwright test setup and script generation |
