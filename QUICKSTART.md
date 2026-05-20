@@ -8,22 +8,30 @@ Get your project running with this framework in under 10 minutes.
 
 **Option A — automated (recommended)**
 
-Run the onboarding wizard from the framework root:
+`onboard.sh` has two commands:
+
+| Command | When to use |
+|---|---|
+| `./onboard.sh` | First time — scaffold a brand new project |
+| `./onboard.sh add-service <project>` | Later — add a new service to an existing project |
+| `./onboard.sh --help` | Full usage reference |
+
+**New project:**
 
 ```bash
 ./onboard.sh
 ```
 
-The wizard asks for your project name, description, shared infrastructure constants (URLs, DB, Confluence), then loops asking for each backend service — **name + language** — so you can define any mix:
+The wizard asks for project name, shared infrastructure constants (URLs, DB, Confluence), then loops asking for each backend service — **name + language** — so you can define any mix:
 
 ```
-Service 1 name: payment-api     Language: java
+Service 1 name: payment-api       Language: java
 Service 2 name: notification-bff  Language: nodejs
-Service 3 name: risk-engine     Language: go
-Service 4 name:                 ← press Enter to finish
+Service 3 name: risk-engine       Language: go
+Service 4 name:                   ← press Enter to finish
 ```
 
-It then generates:
+Generates:
 
 ```
 projects/<your-project>/
@@ -35,10 +43,19 @@ projects/<your-project>/
 ├── frontend/AGENTS.md                    ← optional
 ├── e2e-test/<PROJECT>_E2E_CONFIG.md
 ├── tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
-└── adr/INDEX.md
+├── adr/INDEX.md
+└── fsd/README.md
 ```
 
-And adds `projects/<your-project>/` to `.gitignore` automatically.
+**Add a service later (e.g. a new Go microservice added 3 months in):**
+
+```bash
+./onboard.sh add-service <your-project>
+```
+
+Asks for the new service name + language + details, then:
+- Creates `projects/<your-project>/services/<new-service>/AGENTS.md`
+- Appends the new service row to the Sub-Module Map in the root `AGENTS.md` automatically
 
 Supported languages: `java` | `nodejs` | `go` | `python` | `dotnet`
 

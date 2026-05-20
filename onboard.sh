@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
-# onboard.sh — scaffold a new multi-service project
+# onboard.sh — scaffold and extend multi-service projects
 #
-# Usage:
-#   ./onboard.sh                        (interactive — recommended)
-#   ./onboard.sh --help
+# Commands:
+#   ./onboard.sh                          new project wizard (interactive)
+#   ./onboard.sh add-service <project>    add one service to an existing project
+#   ./onboard.sh --help                   show this help
 #
 # Supports any mix of languages per service:
 #   java | nodejs | go | python | dotnet
 #
-# Output structure:
+# Output structure (new project):
 #   projects/<project-name>/
 #   ├── AGENTS.md                        ← project-wide constants
 #   ├── services/
@@ -95,32 +96,184 @@ validate_lang() {
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   cat <<'EOF'
-onboard.sh — scaffold a new project for the Agentic Context-Driven Design Framework
+onboard.sh — scaffold and extend multi-service projects
 
-Usage:
-  ./onboard.sh             Run interactive wizard (recommended)
-  ./onboard.sh --help      Show this help
+COMMANDS
+  ./onboard.sh
+      New project wizard. Asks for project name, shared infrastructure
+      constants, then loops to define any number of backend services
+      (each with its own language). Optionally adds a frontend.
 
-What it creates:
-  projects/<project-name>/
-  ├── AGENTS.md                              project-wide constants (URLs, DB, Confluence)
-  ├── services/
-  │   └── <service-name>/AGENTS.md          one per backend service (language-specific)
-  ├── frontend/AGENTS.md                    optional — React / Vue / Angular
-  ├── e2e-test/<PROJECT>_E2E_CONFIG.md
-  ├── tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
-  └── adr/INDEX.md
+  ./onboard.sh add-service <project-name>
+      Add one new service to an existing project. Updates the project's
+      root AGENTS.md Sub-Module Map automatically.
 
-Supported languages per service:
+  ./onboard.sh --help
+      Show this help.
+
+SUPPORTED LANGUAGES (per service)
   java    Spring Boot
   nodejs  Node.js / TypeScript / Express / Fastify
   go      Go / Gin / Echo / Chi
   python  Python / FastAPI / Django
   dotnet  C# / ASP.NET Core
 
-Each service gets its own AGENTS.md with language-specific placeholders.
-The project root AGENTS.md contains only shared constants.
+OUTPUT STRUCTURE (new project)
+  projects/<project-name>/
+  ├── AGENTS.md                              shared constants (URLs, DB, Confluence)
+  ├── services/
+  │   └── <service-name>/AGENTS.md          one per service — language-specific
+  ├── frontend/AGENTS.md                    optional
+  ├── e2e-test/<PROJECT>_E2E_CONFIG.md
+  ├── tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
+  ├── adr/INDEX.md
+  └── fsd/README.md
+
+OUTPUT (add-service)
+  projects/<project-name>/services/<service-name>/AGENTS.md  (new)
+  projects/<project-name>/AGENTS.md                          (Sub-Module Map updated)
+
+EXAMPLES
+  # Onboard a new project
+  ./onboard.sh
+
+  # Add a Go risk-engine to an existing trade-finance project
+  ./onboard.sh add-service trade-finance
+
+LOADING ORDER (for the AI tool)
+  Every task — always load in this order:
+    1. projects/<project>/AGENTS.md                    shared constants
+    2. projects/<project>/services/<name>/AGENTS.md    service coding agent
+    3. core/<module>/<PROMPT>.md                       task prompt
 EOF
+  exit 0
+fi
+
+# ── add-service subcommand ─────────────────────────────────────────────────────
+
+if [[ "${1:-}" == "add-service" ]]; then
+  if [ -z "${2:-}" ]; then
+    echo "Usage: ./onboard.sh add-service <project-name>"
+    exit 1
+  fi
+
+  PROJECT="$2"
+  DEST="projects/$PROJECT"
+  ROOT_AGENTS="${DEST}/AGENTS.md"
+
+  if [ ! -f "$ROOT_AGENTS" ]; then
+    echo "Error: $ROOT_AGENTS not found."
+    echo "Run './onboard.sh' first to create the project, then re-run this command."
+    exit 1
+  fi
+
+  PROJECT_UPPER=$(echo "$PROJECT" | tr '[:lower:]-' '[:upper:]_' | tr -d '_')
+
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════════╗"
+  echo "║   Add Service — ${PROJECT}"
+  echo "╚══════════════════════════════════════════════════════════════╝"
+  echo ""
+  echo "Adding a new service to: $DEST"
+  echo "Supported languages: java | nodejs | go | python | dotnet"
+  echo ""
+
+  # service identity
+  SVC_NAME=$(ask "Service name (kebab-case, e.g. audit-log-service)")
+  validate_kebab "$SVC_NAME"
+
+  SVC_DIR="${DEST}/services/${SVC_NAME}"
+  if [ -d "$SVC_DIR" ]; then
+    echo "Error: $SVC_DIR already exists."
+    exit 1
+  fi
+
+  SVC_LANG=$(ask "Language" "java")
+  validate_lang "$SVC_LANG"
+
+  SVC_DESC=$(ask "One-line purpose" "${SVC_NAME} service")
+
+  # Read ORG from existing AGENTS.md for smart defaults
+  ORG=$(grep "Organization" "$ROOT_AGENTS" | head -1 | sed 's/.*| *\(.*\) *|.*/\1/' | xargs)
+
+  # language-specific details
+  echo ""
+  echo "  ── Details for $SVC_NAME ($(lang_label "$SVC_LANG"))"
+  local_details=""
+  case "$SVC_LANG" in
+    java)
+      pkg=$(ask "    Base package" "com.$(echo "$ORG" | tr '[:upper:] ' '[:lower:].' | tr -d ',').$(echo "$SVC_NAME" | tr '-' '.')")
+      build=$(ask "    Build tool (maven/gradle)" "maven")
+      jver=$(ask "    Java version" "17")
+      local_details="pkg=${pkg}|build=${build}|version=${jver}"
+      ;;
+    nodejs)
+      scope=$(ask "    npm package name" "@$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${SVC_NAME}")
+      nver=$(ask "    Node.js version" "20")
+      framework=$(ask "    HTTP framework (express/fastify)" "express")
+      local_details="scope=${scope}|version=${nver}|framework=${framework}"
+      ;;
+    go)
+      module=$(ask "    Go module path" "github.com/$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${SVC_NAME}")
+      gver=$(ask "    Go version" "1.22")
+      framework=$(ask "    HTTP framework (gin/echo/chi/net-http)" "gin")
+      local_details="module=${module}|version=${gver}|framework=${framework}"
+      ;;
+    python)
+      pkg=$(ask "    Python package name" "$(echo "$SVC_NAME" | tr '-' '_')")
+      pyver=$(ask "    Python version" "3.12")
+      framework=$(ask "    Framework (fastapi/django/flask)" "fastapi")
+      local_details="pkg=${pkg}|version=${pyver}|framework=${framework}"
+      ;;
+    dotnet)
+      ns=$(ask "    Root namespace" "$(echo "$ORG" | tr '[:lower:] ' '[:upper:].' | tr -d ',').$(echo "$SVC_NAME" | sed 's/-\(.\)/\U\1/g; s/^\(.\)/\U\1/')")
+      dnver=$(ask "    .NET version" "8")
+      local_details="ns=${ns}|version=${dnver}"
+      ;;
+  esac
+
+  # confirm
+  echo ""
+  echo "  Service : $SVC_NAME"
+  echo "  Language: $(lang_label "$SVC_LANG")"
+  echo "  Purpose : $SVC_DESC"
+  echo "  Target  : $SVC_DIR/AGENTS.md"
+  echo ""
+  if ! ask_yn "Proceed?"; then
+    echo "Aborted."
+    exit 0
+  fi
+
+  # generate service AGENTS.md
+  generate_service_agents \
+    "$SVC_NAME" "$SVC_LANG" "$SVC_DESC" "$local_details" "$SVC_DIR"
+
+  echo "  Created: $SVC_DIR/AGENTS.md"
+
+  # append row to Sub-Module Map in root AGENTS.md
+  # find the ADR row (always present) and insert before it
+  NEW_ROW="| ${SVC_NAME} ($(lang_label "$SVC_LANG")) | [\`services/${SVC_NAME}/AGENTS.md\`](services/${SVC_NAME}/AGENTS.md) | ${SVC_DESC} |"
+  # insert the new row before the ADR line in the Sub-Module Map
+  sed -i.bak "/^\| ADR \|/i\\
+${NEW_ROW}
+" "$ROOT_AGENTS" && rm -f "${ROOT_AGENTS}.bak"
+
+  echo "  Updated: $ROOT_AGENTS (Sub-Module Map)"
+
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════════╗"
+  echo "║   Done! Service '${SVC_NAME}' added to ${PROJECT}"
+  echo "╚══════════════════════════════════════════════════════════════╝"
+  echo ""
+  echo "Loading order for tasks on this service:"
+  echo ""
+  echo "  1. Load: ${DEST}/AGENTS.md"
+  echo "  2. Load: ${SVC_DIR}/AGENTS.md"
+  echo "  3. Run:  core/<module>/<PROMPT>.md"
+  echo ""
+  echo "To add another service:"
+  echo "  ./onboard.sh add-service ${PROJECT}"
+  echo ""
   exit 0
 fi
 
@@ -128,10 +281,11 @@ fi
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║   Agentic Context-Driven Design Framework — Project Setup   ║"
+echo "║   Agentic Context-Driven Design Framework — New Project     ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 echo "This wizard scaffolds a new project folder under projects/."
+echo "To add a service to an existing project: ./onboard.sh add-service <project>"
 echo "Press Enter to accept defaults shown in [brackets]."
 echo ""
 
@@ -857,4 +1011,7 @@ echo "  Tip: For each task, always load the relevant service AGENTS.md too:"
 echo "     Load: ${DEST}/AGENTS.md"
 echo "     Load: ${DEST}/services/<service-name>/AGENTS.md"
 echo "     Run:  <prompt>"
+echo ""
+echo "To add more services later:"
+echo "  ./onboard.sh add-service ${PROJECT}"
 echo ""
