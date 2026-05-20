@@ -2,19 +2,29 @@
 
 ## Purpose
 
-Define the reference technology stack and architectural patterns used across projects in this framework. This module is tool-agnostic and technology-agnostic at the `core/` level — it describes the **patterns and constraints**, not specific vendor choices.
+Define the reference architectural patterns and constraints used across all projects in this framework. This module is **language-agnostic** — it describes *how* services are structured, not *which* language implements them.
 
-Project-specific stack values (package names, versions, Kubernetes namespace, cloud provider) are declared in `projects/<name>/AGENTS.md` and override or extend this context.
+Project-specific stack values (versions, package names, cloud provider, Kubernetes namespace) are declared in `projects/<name>/AGENTS.md` and `projects/<name>/services/<name>/AGENTS.md`.
+
+For language-specific implementation details, load the matching file alongside this one:
+
+| Language | Tech-Stack Reference |
+|---|---|
+| Java (Spring Boot) | [`core/tech-stack/java.md`](java.md) |
+| Node.js (TypeScript) | [`core/tech-stack/nodejs.md`](nodejs.md) |
+| Go | [`core/tech-stack/go.md`](go.md) |
+| Python | [`core/tech-stack/python.md`](python.md) |
+| .NET (C#) | [`core/tech-stack/dotnet.md`](dotnet.md) |
 
 ---
 
 ## Reference Architecture
 
-The framework targets **cloud-native, Kubernetes-deployed, API-first enterprise backend systems** with a React SPA frontend. The architectural layers from outer to inner:
+The framework targets **cloud-native, Kubernetes-deployed, API-first enterprise backend systems**.
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  Client (React SPA / Mobile / External System)    │
+│  Client (SPA / Mobile / External System)         │
 └────────────────────┬─────────────────────────────┘
                      │ HTTPS / TLS 1.2+
 ┌────────────────────▼─────────────────────────────┐
@@ -24,33 +34,83 @@ The framework targets **cloud-native, Kubernetes-deployed, API-first enterprise 
 ┌────────────────────▼─────────────────────────────┐
 │  Backend Service                                  │
 │  ┌──────────────────────────────────────────────┐ │
-│  │ Controller Layer       (HTTP in/out)         │ │
-│  │ Usecase Layer          (business orchestration) │ │
-│  │ Step Layer             (atomic business units)│ │
-│  │ Repository Layer       (data access only)    │ │
+│  │ Handler / Controller   (HTTP in/out)         │ │
+│  │ UseCase / Service      (business orchestration)│ │
+│  │ Steps / Domain Logic   (atomic business units)│ │
+│  │ Repository             (data access only)    │ │
 │  └──────────────────────────────────────────────┘ │
 └────────────────────┬─────────────────────────────┘
                      │
 ┌────────────────────▼─────────────────────────────┐
-│  Database (Azure SQL / PostgreSQL / MySQL)        │
+│  Database (SQL / NoSQL — project-specific)        │
 └──────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Backend Stack (Reference)
+## Architectural Patterns (Language-Agnostic)
 
-| Layer | Technology | Notes |
+### Handler → UseCase → Step Pattern
+
+Every feature endpoint follows this strict layering regardless of language:
+
+```
+Handler / Controller
+  └── UseCase / Service (interface + implementation)
+        └── Step 1: ValidateInputStep
+        └── Step 2: CheckBusinessRuleStep
+        └── Step 3: PersistDataStep
+        └── Step 4: PublishEventStep  (if applicable)
+```
+
+**Rules (apply to all languages):**
+- One UseCase / Service per operation — `CreatePayment`, `SearchTransaction`
+- Each Step performs exactly one atomic business action
+- A shared Context / state object carries data between steps — no method parameters for inter-step data
+- Steps MUST be independently unit-testable in isolation
+- Business logic lives only in Steps / Service layer — never in Handlers or Repositories
+
+### Layer Boundary Rules
+
+| Layer | Allowed dependencies | Forbidden |
 |---|---|---|
-| Language | Java 17 | LTS; use records, sealed classes, pattern matching where appropriate |
-| Framework | Spring Boot 3.x | No Spring MVC XML config — annotation-only |
-| Data Access | JdbcTemplate | No JPA / Hibernate — explicit SQL only |
-| Build | Maven | Multi-module POM supported |
-| Testing | JUnit 5 + Mockito | `@ExtendWith(MockitoExtension.class)` only — no JUnit 4 |
-| API Style | REST / JSON | OpenAPI 3 spec generated from code |
-| Auth | Spring Security + OAuth 2 / OIDC | SSO via Identity Provider |
-| Containerization | Docker | Multi-stage build; non-root user |
-| Orchestration | Kubernetes | Resource limits, probes, graceful shutdown required (see NFR) |
+| Handler | UseCase interface only | Repository, DB, business logic |
+| UseCase | Steps, Repository interface | HTTP types, DB drivers |
+| Step | Repository interface, domain models | HTTP types, other Steps directly |
+| Repository | DB driver / ORM | HTTP types, UseCase, Step |
+
+See `core/architecture/AGENTS.md` for full hexagonal and microservice boundary rules.
+
+### API Response Envelope
+
+All services use a standard response wrapper:
+
+```json
+{
+  "statusCode": "{{ERROR_CODE_PREFIX}}000",
+  "statusDescription": "Success",
+  "items": [],
+  "totalRecords": 0
+}
+```
+
+Error response:
+
+```json
+{
+  "statusCode": "{{ERROR_CODE_PREFIX}}001",
+  "statusDescription": "{{ERROR_DESCRIPTION}}"
+}
+```
+
+### Cloud-Agnostic Adapter Rule
+
+Business logic MUST NOT import cloud-vendor SDKs directly. Use adapter interfaces for:
+- Secret management (ESO / CSI Driver)
+- Object storage (CSI NFS/SMB or Fuse Driver)
+- Messaging (abstract behind interface; Kafka or cloud MQ underneath)
+
+See `core/nfr/AGENTS.md` Section 4 for full cloud-agnostic NFR rules.
 
 ---
 
@@ -69,86 +129,30 @@ The framework targets **cloud-native, Kubernetes-deployed, API-first enterprise 
 
 ---
 
-## Architectural Patterns
-
-### Backend: Usecase → Step Pattern
-
-Every feature endpoint follows this strict layering:
-
-```
-Controller
-  └── UseCase (interface + impl)
-        └── Step 1: ValidateInputStep
-        └── Step 2: CheckBusinessRuleStep
-        └── Step 3: PersistDataStep
-        └── Step 4: PublishEventStep (if applicable)
-```
-
-**Rules:**
-- One `UseCase` per operation (e.g., `CreatePaymentUseCase`, `SearchTransactionUseCase`)
-- Each `Step` is a Spring-managed bean with a single `execute(Context)` method
-- `Context` object carries request + response + shared state across all steps — never use method parameters for inter-step data
-- Steps MUST be independently unit-testable
-- Business logic lives only in Steps — never in Controllers or Repositories
-
-### Database Access
-
-- All SQL via `JdbcTemplate` — no ORM
-- Repositories are the only classes allowed to call `JdbcTemplate`
-- Use named parameters (`NamedParameterJdbcTemplate`) for all parameterized queries
-- Stored procedures: use only for complex batch operations; document the reason
-
-### API Response Envelope
-
-All responses use a standard wrapper:
-
-```json
-{
-  "statusCode": "{{PROJECT_SUCCESS_CODE}}",
-  "statusDescription": "Success",
-  "items": [...],
-  "totalRecords": 0
-}
-```
-
-Error responses:
-
-```json
-{
-  "statusCode": "{{PROJECT_ERROR_CODE}}",
-  "statusDescription": "{{ERROR_DESCRIPTION}}"
-}
-```
-
-### Cloud Agnostic
-
-Per `core/nfr/AGENTS.md` Section 4: business logic MUST NOT import cloud-vendor SDKs. Use adapter interfaces for:
-- Secret management (ESO / CSI Driver)
-- Object storage (CSI NFS/SMB or Fuse Driver)
-- Messaging (abstract behind interface; Kafka or cloud MQ underneath)
-
----
-
 ## Project-Specific Overrides
 
 Each project's `projects/<name>/AGENTS.md` MUST declare:
 
 | Field | Placeholder |
 |---|---|
-| Java package root | `{{BASE_PACKAGE}}` |
 | Database schema | `{{DB_SCHEMA}}` |
 | Error code prefix | `{{ERROR_CODE_PREFIX}}` |
 | API base path | `{{API_BASE_PATH}}` |
-| Cloud provider | `{{CLOUD_PROVIDER}}` |
-| Container registry | `{{CONTAINER_REGISTRY}}` |
-| Kubernetes namespace | `{{K8S_NAMESPACE}}` |
+| Auth provider | `{{AUTH_PROVIDER}}` |
+
+Each service's `projects/<name>/services/<svc>/AGENTS.md` MUST declare:
+
+| Field | Placeholder |
+|---|---|
+| Language / runtime | `{{CODING_AGENT}}` path |
+| Language-specific package / module | see service AGENTS.md |
 
 ---
 
 ## DO NOT
 
-- Do not use JPA, Hibernate, or Spring Data JPA — use `JdbcTemplate` only
-- Do not place business logic in Controllers or Repositories
-- Do not bypass the Usecase → Step pattern for "simple" endpoints
+- Do not place business logic in Handlers / Controllers or Repositories
+- Do not bypass the Handler → UseCase → Step pattern for "simple" endpoints
 - Do not import cloud-vendor SDKs in business logic classes
-- Do not use class-level `@Transactional` on Steps — annotate only at UseCase Impl level
+- Do not allow cross-service direct database access — communicate via API only
+- Do not hardcode environment URLs or credentials — use environment variables
