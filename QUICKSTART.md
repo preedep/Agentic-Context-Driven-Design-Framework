@@ -4,17 +4,41 @@ Get your project running with this framework in under 10 minutes.
 
 ---
 
-## Step 1 — Copy the example project
+## Step 1 — Scaffold your project
+
+**Option A — automated (recommended)**
+
+Run the onboarding script from the framework root:
+
+```bash
+./onboard.sh <your-project> <language>
+```
+
+| Argument | Values |
+|---|---|
+| `<your-project>` | kebab-case name, e.g. `trade-finance`, `payments` |
+| `<language>` | `java` \| `nodejs` \| `go` |
+
+The script will:
+1. Copy `projects/acme-pay/` to `projects/<your-project>/`
+2. Prompt you for each constant (URLs, schema, error prefix, etc.)
+3. Replace all placeholder values in the copied files
+4. Add your project folder to `.gitignore` automatically
+5. Print the next steps
+
+**Option B — manual**
 
 ```bash
 cp -r projects/acme-pay projects/<your-project>
 ```
 
-Replace `<your-project>` with your project name in kebab-case (e.g., `trade-finance`, `payments`).
+Then continue to Step 2 to fill in the values yourself.
 
 ---
 
 ## Step 2 — Fill in your project constants
+
+> **Skip this step if you used `onboard.sh`** — it already did the replacements. Just review `projects/<your-project>/AGENTS.md` to verify.
 
 Open `projects/<your-project>/AGENTS.md` and replace every value in the **Placeholder Values** table.
 
@@ -68,6 +92,8 @@ Also update the **System Context** table (tech stack, team, auth) and the **Do N
 ---
 
 ## Step 3 — Gitignore your project folder
+
+> **Skip this step if you used `onboard.sh`** — it already added the entry.
 
 Real project configs contain internal URLs and credentials — never commit them.
 
