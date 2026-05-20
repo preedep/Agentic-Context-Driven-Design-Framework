@@ -42,12 +42,29 @@ New or modified TypeScript/JavaScript source files placed in the correct module 
 
 ---
 
+## Stack
+
+| Layer | Technology | Notes |
+|---|---|---|
+| Language | TypeScript 5.x | Strict mode enabled |
+| Runtime | Node.js 20 LTS | See `{{NODE_VERSION}}` in service AGENTS.md |
+| Framework | Express / Fastify | See `{{HTTP_FRAMEWORK}}` in service AGENTS.md |
+| Data Access | Knex / pg / Prisma | Parameterized queries only |
+| Build | tsc + esbuild / tsx | |
+| Testing | Vitest + Supertest | |
+| API Style | REST / JSON | OpenAPI 3 spec |
+| Auth | Passport.js / JWT middleware | SSO via Identity Provider |
+| Containerization | Docker | Multi-stage build; non-root user |
+| Orchestration | Kubernetes | Resource limits, probes, graceful shutdown required |
+
+---
+
 ## Technical Requirements
 
 ### Core Technologies
-- **Runtime:** Node.js 20 LTS or later (check project AGENTS.md for exact version)
+- **Runtime:** see `{{NODE_VERSION}}` in service AGENTS.md
 - **Language:** TypeScript 5 (strict mode)
-- **Framework:** Express 4 or Fastify 4 — check project AGENTS.md
+- **Framework:** see `{{HTTP_FRAMEWORK}}` in service AGENTS.md
 - **ORM / DB client:** Prisma, Knex, or `pg` — check project AGENTS.md
 - **Build Tool:** `tsc` + `esbuild` or `ts-node` for local dev
 - **Containerization:** Docker

@@ -42,7 +42,7 @@ integrate-agent/ ← optional wiring guides per AI tool (Claude Code, Copilot, O
 | Code to Spec | `core/code-to-spec/` | Reverse-engineer spec from existing source code |
 | Dependency Update | `core/dependency-update/` | Multi-repo Maven dependency bump automation |
 | NFR | `core/nfr/` | Non-Functional Requirements (logging, security, Kubernetes) — embedded, not linked |
-| Tech Stack | `core/tech-stack/` | Language-agnostic architecture patterns (AGENTS.md) + per-language stack files (java.md, nodejs.md, go.md, python.md, dotnet.md) |
+| Tech Stack | `core/tech-stack/` | Language-agnostic architecture patterns (Handler→UseCase→Step, API envelope, cloud-agnostic rule) |
 
 ## TDD Workflow (canonical order)
 

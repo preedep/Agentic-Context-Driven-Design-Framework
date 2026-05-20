@@ -47,6 +47,23 @@ Use this agent when you need to:
 
 ---
 
+## Stack
+
+| Layer | Technology | Notes |
+|---|---|---|
+| Language | C# 12 / .NET 8 LTS | See `{{DOTNET_VERSION}}` in service AGENTS.md |
+| Framework | ASP.NET Core 8 | Minimal API or Controller-based |
+| Data Access | Dapper / EF Core | Parameterized queries only |
+| Validation | FluentValidation | |
+| Build | dotnet CLI + MSBuild | |
+| Testing | xUnit + FluentAssertions + Moq | |
+| API Style | REST / JSON | OpenAPI 3 spec via Swashbuckle / Scalar |
+| Auth | ASP.NET Core Identity + OAuth2 / OIDC | SSO via Identity Provider |
+| Containerization | Docker | Multi-stage build; non-root user |
+| Orchestration | Kubernetes | Resource limits, probes, graceful shutdown required |
+
+---
+
 ## Project Structure
 
 ```

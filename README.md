@@ -30,13 +30,7 @@ agent-framework/
 │   ├── code-to-spec/            # Generate Confluence specs from source code
 │   ├── dependency-update/       # Automated Java dependency update process
 │   ├── nfr/                     # NFR: logging, OWASP Top 10 (Web + API), security, K8s
-│   └── tech-stack/              # Architecture patterns + per-language stack reference
-│       ├── AGENTS.md            #   language-agnostic pattern overview
-│       ├── java.md              #   Spring Boot specifics
-│       ├── nodejs.md            #   Node.js / TypeScript specifics
-│       ├── go.md                #   Go specifics
-│       ├── python.md            #   Python / FastAPI specifics
-│       └── dotnet.md            #   C# / ASP.NET Core specifics
+│   └── tech-stack/              # Language-agnostic architecture patterns
 │
 ├── projects/
 │   └── acme-pay/                # Example: ACME payment processing system (Java + React)
@@ -228,7 +222,7 @@ Identify the right prompt from the Agent Index below, then follow the tool-speci
 | Code to Spec | [`core/code-to-spec/AGENTS.md`](core/code-to-spec/AGENTS.md) | Generate a Confluence API spec from existing source code |
 | Dependency Update | [`core/dependency-update/AGENTS.md`](core/dependency-update/AGENTS.md) | Automatically update Java library versions across multiple repos |
 | NFR | [`core/nfr/AGENTS.md`](core/nfr/AGENTS.md) | Non-Functional Requirements: logging, OWASP Top 10 (Web + API), security, Kubernetes |
-| Tech Stack | [`core/tech-stack/AGENTS.md`](core/tech-stack/AGENTS.md) | Language-agnostic architecture patterns; load `java.md` / `nodejs.md` / `go.md` / `python.md` / `dotnet.md` for language-specific stack |
+| Tech Stack | [`core/tech-stack/AGENTS.md`](core/tech-stack/AGENTS.md) | Language-agnostic architecture patterns (Handler→UseCase→Step, API envelope, cloud-agnostic rule) |
 
 ### Example Project Agents (acme-pay)
 

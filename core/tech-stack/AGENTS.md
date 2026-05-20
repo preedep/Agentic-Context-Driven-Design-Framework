@@ -6,15 +6,15 @@ Define the reference architectural patterns and constraints used across all proj
 
 Project-specific stack values (versions, package names, cloud provider, Kubernetes namespace) are declared in `projects/<name>/AGENTS.md` and `projects/<name>/services/<name>/AGENTS.md`.
 
-For language-specific implementation details, load the matching file alongside this one:
+For language-specific stack details, coding standards, and code examples, load the matching coding module:
 
-| Language | Tech-Stack Reference |
+| Language | Coding Module |
 |---|---|
-| Java (Spring Boot) | [`core/tech-stack/java.md`](java.md) |
-| Node.js (TypeScript) | [`core/tech-stack/nodejs.md`](nodejs.md) |
-| Go | [`core/tech-stack/go.md`](go.md) |
-| Python | [`core/tech-stack/python.md`](python.md) |
-| .NET (C#) | [`core/tech-stack/dotnet.md`](dotnet.md) |
+| Java (Spring Boot) | [`core/coding/java/AGENTS.md`](../coding/java/AGENTS.md) |
+| Node.js (TypeScript) | [`core/coding/nodejs/AGENTS.md`](../coding/nodejs/AGENTS.md) |
+| Go | [`core/coding/go/AGENTS.md`](../coding/go/AGENTS.md) |
+| Python | [`core/coding/python/AGENTS.md`](../coding/python/AGENTS.md) |
+| .NET (C#) | [`core/coding/dotnet/AGENTS.md`](../coding/dotnet/AGENTS.md) |
 
 ---
 

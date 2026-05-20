@@ -47,6 +47,22 @@ Use this agent when you need to:
 
 ---
 
+## Stack
+
+| Layer | Technology | Notes |
+|---|---|---|
+| Language | Go 1.22+ | See `{{GO_VERSION}}` in service AGENTS.md |
+| HTTP Framework | Gin / Echo / Chi | See `{{HTTP_FRAMEWORK}}` in service AGENTS.md |
+| Data Access | `database/sql` + `pgx` / `sqlx` | Parameterized queries only |
+| Build | `go build` | Multi-stage Docker build |
+| Testing | `testing` + `testify` | Table-driven tests preferred |
+| API Style | REST / JSON | OpenAPI 3 spec via `swaggo` or `ogen` |
+| Auth | JWT middleware | SSO via Identity Provider |
+| Containerization | Docker | Multi-stage build; non-root user |
+| Orchestration | Kubernetes | Resource limits, probes, graceful shutdown required |
+
+---
+
 ## Project Structure
 
 ```
