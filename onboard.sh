@@ -184,8 +184,12 @@ if [[ "${1:-}" == "add-service" ]]; then
 
   SVC_DIR="${DEST}/services/${SVC_NAME}"
   if [ -d "$SVC_DIR" ]; then
-    echo "Error: $SVC_DIR already exists."
-    exit 1
+    echo ""
+    echo "  Warning: $SVC_DIR already exists."
+    if ! ask_yn "Overwrite existing service files?"; then
+      echo "Aborted."
+      exit 0
+    fi
   fi
 
   SVC_LANG=$(ask "Language" "java")
@@ -300,8 +304,15 @@ PROJECT_TITLE=$(echo "$PROJECT" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=to
 
 DEST="projects/$PROJECT"
 if [ -d "$DEST" ]; then
-  echo "  Error: $DEST already exists. Choose a different name or delete it first."
-  exit 1
+  echo ""
+  echo "  Warning: $DEST already exists."
+  echo "  Continuing will overwrite generated files (AGENTS.md, e2e-test, tech-spec, adr, fsd)."
+  echo "  Manually-edited files inside that folder will be overwritten."
+  echo ""
+  if ! ask_yn "Continue and overwrite existing files?"; then
+    echo "Aborted. Choose a different project name or delete the folder first."
+    exit 0
+  fi
 fi
 
 DESCRIPTION=$(ask "One-line project description" "${PROJECT_TITLE} system")
