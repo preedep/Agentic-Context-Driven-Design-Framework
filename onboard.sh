@@ -92,373 +92,6 @@ validate_lang() {
   exit 1
 }
 
-# ── help ───────────────────────────────────────────────────────────────────────
-
-if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  cat <<'EOF'
-onboard.sh — scaffold and extend multi-service projects
-
-COMMANDS
-  ./onboard.sh
-      New project wizard. Asks for project name, shared infrastructure
-      constants, then loops to define any number of backend services
-      (each with its own language). Optionally adds a frontend.
-
-  ./onboard.sh add-service <project-name>
-      Add one new service to an existing project. Updates the project's
-      root AGENTS.md Sub-Module Map automatically.
-
-  ./onboard.sh --help
-      Show this help.
-
-SUPPORTED LANGUAGES (per service)
-  java    Spring Boot
-  nodejs  Node.js / TypeScript / Express / Fastify
-  go      Go / Gin / Echo / Chi
-  python  Python / FastAPI / Django
-  dotnet  C# / ASP.NET Core
-
-OUTPUT STRUCTURE (new project)
-  projects/<project-name>/
-  ├── AGENTS.md                              shared constants (URLs, DB, Confluence)
-  ├── services/
-  │   └── <service-name>/AGENTS.md          one per service — language-specific
-  ├── frontend/AGENTS.md                    optional
-  ├── e2e-test/<PROJECT>_E2E_CONFIG.md
-  ├── tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
-  ├── adr/INDEX.md
-  └── fsd/README.md
-
-OUTPUT (add-service)
-  projects/<project-name>/services/<service-name>/AGENTS.md  (new)
-  projects/<project-name>/AGENTS.md                          (Sub-Module Map updated)
-
-EXAMPLES
-  # Onboard a new project
-  ./onboard.sh
-
-  # Add a Go risk-engine to an existing trade-finance project
-  ./onboard.sh add-service trade-finance
-
-LOADING ORDER (for the AI tool)
-  Every task — always load in this order:
-    1. projects/<project>/AGENTS.md                    shared constants
-    2. projects/<project>/services/<name>/AGENTS.md    service coding agent
-    3. core/<module>/<PROMPT>.md                       task prompt
-EOF
-  exit 0
-fi
-
-# ── add-service subcommand ─────────────────────────────────────────────────────
-
-if [[ "${1:-}" == "add-service" ]]; then
-  if [ -z "${2:-}" ]; then
-    echo "Usage: ./onboard.sh add-service <project-name>"
-    exit 1
-  fi
-
-  PROJECT="$2"
-  DEST="projects/$PROJECT"
-  ROOT_AGENTS="${DEST}/AGENTS.md"
-
-  if [ ! -f "$ROOT_AGENTS" ]; then
-    echo "Error: $ROOT_AGENTS not found."
-    echo "Run './onboard.sh' first to create the project, then re-run this command."
-    exit 1
-  fi
-
-  PROJECT_UPPER=$(echo "$PROJECT" | tr '[:lower:]-' '[:upper:]_' | tr -d '_')
-
-  echo ""
-  echo "╔══════════════════════════════════════════════════════════════╗"
-  echo "║   Add Service — ${PROJECT}"
-  echo "╚══════════════════════════════════════════════════════════════╝"
-  echo ""
-  echo "Adding a new service to: $DEST"
-  echo "Supported languages: java | nodejs | go | python | dotnet"
-  echo ""
-
-  # service identity
-  SVC_NAME=$(ask "Service name (kebab-case, e.g. audit-log-service)")
-  validate_kebab "$SVC_NAME"
-
-  SVC_DIR="${DEST}/services/${SVC_NAME}"
-  if [ -d "$SVC_DIR" ]; then
-    echo ""
-    echo "  Warning: $SVC_DIR already exists."
-    if ! ask_yn "Overwrite existing service files?"; then
-      echo "Aborted."
-      exit 0
-    fi
-  fi
-
-  SVC_LANG=$(ask "Language" "java")
-  validate_lang "$SVC_LANG"
-
-  SVC_DESC=$(ask "One-line purpose" "${SVC_NAME} service")
-
-  # Read ORG from existing AGENTS.md for smart defaults
-  ORG=$(grep "Organization" "$ROOT_AGENTS" | head -1 | sed 's/.*| *\(.*\) *|.*/\1/' | xargs)
-
-  # language-specific details
-  echo ""
-  echo "  ── Details for $SVC_NAME ($(lang_label "$SVC_LANG"))"
-  local_details=""
-  case "$SVC_LANG" in
-    java)
-      pkg=$(ask "    Base package" "com.$(echo "$ORG" | tr '[:upper:] ' '[:lower:].' | tr -d ',').$(echo "$SVC_NAME" | tr '-' '.')")
-      build=$(ask "    Build tool (maven/gradle)" "maven")
-      jver=$(ask "    Java version" "17")
-      local_details="pkg=${pkg}|build=${build}|version=${jver}"
-      ;;
-    nodejs)
-      scope=$(ask "    npm package name" "@$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${SVC_NAME}")
-      nver=$(ask "    Node.js version" "20")
-      framework=$(ask "    HTTP framework (express/fastify)" "express")
-      local_details="scope=${scope}|version=${nver}|framework=${framework}"
-      ;;
-    go)
-      module=$(ask "    Go module path" "github.com/$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${SVC_NAME}")
-      gver=$(ask "    Go version" "1.22")
-      framework=$(ask "    HTTP framework (gin/echo/chi/net-http)" "gin")
-      local_details="module=${module}|version=${gver}|framework=${framework}"
-      ;;
-    python)
-      pkg=$(ask "    Python package name" "$(echo "$SVC_NAME" | tr '-' '_')")
-      pyver=$(ask "    Python version" "3.12")
-      framework=$(ask "    Framework (fastapi/django/flask)" "fastapi")
-      local_details="pkg=${pkg}|version=${pyver}|framework=${framework}"
-      ;;
-    dotnet)
-      ns=$(ask "    Root namespace" "$(echo "$ORG" | tr '[:lower:] ' '[:upper:].' | tr -d ',').$(echo "$SVC_NAME" | sed 's/-\(.\)/\U\1/g; s/^\(.\)/\U\1/')")
-      dnver=$(ask "    .NET version" "8")
-      local_details="ns=${ns}|version=${dnver}"
-      ;;
-  esac
-
-  # confirm
-  echo ""
-  echo "  Service : $SVC_NAME"
-  echo "  Language: $(lang_label "$SVC_LANG")"
-  echo "  Purpose : $SVC_DESC"
-  echo "  Target  : $SVC_DIR/AGENTS.md"
-  echo ""
-  if ! ask_yn "Proceed?"; then
-    echo "Aborted."
-    exit 0
-  fi
-
-  # generate service AGENTS.md
-  generate_service_agents \
-    "$SVC_NAME" "$SVC_LANG" "$SVC_DESC" "$local_details" "$SVC_DIR"
-
-  echo "  Created: $SVC_DIR/AGENTS.md"
-
-  # append row to Sub-Module Map in root AGENTS.md
-  # find the ADR row (always present) and insert before it
-  NEW_ROW="| ${SVC_NAME} ($(lang_label "$SVC_LANG")) | [\`services/${SVC_NAME}/AGENTS.md\`](services/${SVC_NAME}/AGENTS.md) | ${SVC_DESC} |"
-  # insert the new row before the ADR line in the Sub-Module Map
-  sed -i.bak "/^\| ADR \|/i\\
-${NEW_ROW}
-" "$ROOT_AGENTS" && rm -f "${ROOT_AGENTS}.bak"
-
-  echo "  Updated: $ROOT_AGENTS (Sub-Module Map)"
-
-  echo ""
-  echo "╔══════════════════════════════════════════════════════════════╗"
-  echo "║   Done! Service '${SVC_NAME}' added to ${PROJECT}"
-  echo "╚══════════════════════════════════════════════════════════════╝"
-  echo ""
-  echo "Loading order for tasks on this service:"
-  echo ""
-  echo "  1. Load: ${DEST}/AGENTS.md"
-  echo "  2. Load: ${SVC_DIR}/AGENTS.md"
-  echo "  3. Run:  core/<module>/<PROMPT>.md"
-  echo ""
-  echo "To add another service:"
-  echo "  ./onboard.sh add-service ${PROJECT}"
-  echo ""
-  exit 0
-fi
-
-# ── banner ─────────────────────────────────────────────────────────────────────
-
-echo ""
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║   Agentic Context-Driven Design Framework — New Project     ║"
-echo "╚══════════════════════════════════════════════════════════════╝"
-echo ""
-echo "This wizard scaffolds a new project folder under projects/."
-echo "To add a service to an existing project: ./onboard.sh add-service <project>"
-echo "Press Enter to accept defaults shown in [brackets]."
-echo ""
-
-# ── project identity ───────────────────────────────────────────────────────────
-
-section "Project Identity"
-PROJECT=$(ask "Project name (kebab-case, e.g. trade-finance)")
-validate_kebab "$PROJECT"
-
-PROJECT_UPPER=$(echo "$PROJECT" | tr '[:lower:]-' '[:upper:]_' | tr -d '_')
-PROJECT_TITLE=$(echo "$PROJECT" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1')
-
-DEST="projects/$PROJECT"
-if [ -d "$DEST" ]; then
-  echo ""
-  echo "  Warning: $DEST already exists."
-  echo "  Continuing will overwrite generated files (AGENTS.md, e2e-test, tech-spec, adr, fsd)."
-  echo "  Manually-edited files inside that folder will be overwritten."
-  echo ""
-  if ! ask_yn "Continue and overwrite existing files?"; then
-    echo "Aborted. Choose a different project name or delete the folder first."
-    exit 0
-  fi
-fi
-
-DESCRIPTION=$(ask "One-line project description" "${PROJECT_TITLE} system")
-ORG=$(ask "Organization / team name" "ACME Corp")
-ARCH_PATTERN=$(ask "Architecture pattern (hexagonal+microservice / microservice / monolith)" "hexagonal+microservice")
-
-# ── shared infrastructure ──────────────────────────────────────────────────────
-
-section "Shared Infrastructure"
-BASE_URL_SIT=$(ask "SIT environment base URL"  "https://${PROJECT}-sit.example.com")
-BASE_URL_DEV=$(ask "DEV environment base URL"  "https://${PROJECT}-dev.example.com")
-BASE_URL_UAT=$(ask "UAT environment base URL"  "https://${PROJECT}-uat.example.com")
-
-section "Database"
-DB_TYPE=$(ask "Database type (mssql / mysql / postgres / oracle / mongodb)" "mssql")
-DB_SCHEMA=$(ask "Default schema / database name" "dbo")
-
-section "API"
-API_BASE=$(ask "API base path" "/api/${PROJECT}/v1")
-ERROR_PREFIX=$(ask "Error code prefix (2–5 uppercase letters)" "$(echo "$PROJECT" | cut -c1-3 | tr '[:lower:]' '[:upper:]')")
-
-section "Confluence (documentation)"
-CONFLUENCE_SPACE=$(ask "Confluence space key" "$PROJECT_UPPER")
-CONFLUENCE_PARENT=$(ask "Confluence parent page ID" "123456789")
-
-section "Auth & E2E"
-AUTH_PROVIDER=$(ask "Auth provider (azure-ad / keycloak / okta / none)" "azure-ad")
-AUTH_SESSION=$(ask "Playwright auth session file" "playwright/.auth/session.json")
-
-# ── services (multi-language) ──────────────────────────────────────────────────
-
-section "Backend Services"
-echo "  Define each backend service. A service = one deployable unit (microservice, API, batch job)."
-echo "  Supported languages: java | nodejs | go | python | dotnet"
-echo ""
-
-declare -a SVC_NAMES=()
-declare -a SVC_LANGS=()
-declare -a SVC_DESCS=()
-
-svc_index=1
-while true; do
-  SVC_NAME=$(ask "Service $svc_index name (kebab-case, e.g. payment-api) — or press Enter to finish")
-  [ -z "$SVC_NAME" ] && break
-  validate_kebab "$SVC_NAME"
-
-  SVC_LANG=$(ask "  Language for $SVC_NAME" "java")
-  validate_lang "$SVC_LANG"
-
-  SVC_DESC=$(ask "  One-line purpose of $SVC_NAME" "${SVC_NAME} service")
-
-  SVC_NAMES+=("$SVC_NAME")
-  SVC_LANGS+=("$SVC_LANG")
-  SVC_DESCS+=("$SVC_DESC")
-  svc_index=$((svc_index + 1))
-done
-
-if [ ${#SVC_NAMES[@]} -eq 0 ]; then
-  echo ""
-  echo "  No services defined — you can add services/*/AGENTS.md manually later."
-fi
-
-# Collect language-specific details per service
-declare -a SVC_DETAILS=()
-
-for i in "${!SVC_NAMES[@]}"; do
-  svc="${SVC_NAMES[$i]}"
-  lang="${SVC_LANGS[$i]}"
-  echo ""
-  echo "  ── Details for $svc ($(lang_label "$lang"))"
-  case "$lang" in
-    java)
-      pkg=$(ask "    Base package" "com.$(echo "$ORG" | tr '[:upper:] ' '[:lower:].' | tr -d ',').$(echo "$svc" | tr '-' '.')")
-      build=$(ask "    Build tool (maven/gradle)" "maven")
-      jver=$(ask "    Java version" "17")
-      SVC_DETAILS+=("pkg=${pkg}|build=${build}|version=${jver}")
-      ;;
-    nodejs)
-      scope=$(ask "    npm package name" "@$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${svc}")
-      nver=$(ask "    Node.js version" "20")
-      framework=$(ask "    HTTP framework (express/fastify)" "express")
-      SVC_DETAILS+=("scope=${scope}|version=${nver}|framework=${framework}")
-      ;;
-    go)
-      module=$(ask "    Go module path" "github.com/$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${svc}")
-      gver=$(ask "    Go version" "1.22")
-      framework=$(ask "    HTTP framework (gin/echo/chi/net-http)" "gin")
-      SVC_DETAILS+=("module=${module}|version=${gver}|framework=${framework}")
-      ;;
-    python)
-      pkg=$(ask "    Python package name" "$(echo "$svc" | tr '-' '_')")
-      pyver=$(ask "    Python version" "3.12")
-      framework=$(ask "    Framework (fastapi/django/flask)" "fastapi")
-      SVC_DETAILS+=("pkg=${pkg}|version=${pyver}|framework=${framework}")
-      ;;
-    dotnet)
-      ns=$(ask "    Root namespace" "$(echo "$ORG" | tr '[:lower:] ' '[:upper:].' | tr -d ',').$(echo "$svc" | sed 's/-\(.\)/\U\1/g; s/^\(.\)/\U\1/')")
-      dnver=$(ask "    .NET version" "8")
-      SVC_DETAILS+=("ns=${ns}|version=${dnver}")
-      ;;
-  esac
-done
-
-# ── frontend ───────────────────────────────────────────────────────────────────
-
-section "Frontend (optional)"
-HAS_FRONTEND=false
-if ask_yn "Does this project have a frontend?"; then
-  HAS_FRONTEND=true
-  FE_FRAMEWORK=$(ask "  Frontend framework (react/vue/angular)" "react")
-  FE_LANG=$(ask "  Language (typescript/javascript)" "typescript")
-  FE_UI_LIB=$(ask "  UI component library (mui/ant-design/tailwind/none)" "mui")
-  FE_STATE=$(ask "  State management (zustand/redux/pinia/none)" "zustand")
-fi
-
-# ── confirm ────────────────────────────────────────────────────────────────────
-
-echo ""
-echo "══════════════════════════════════════════════════════════════"
-echo "  Ready to scaffold — here is what will be created:"
-echo ""
-echo "  Project     : $PROJECT"
-echo "  Description : $DESCRIPTION"
-echo "  Org         : $ORG"
-echo "  Architecture: $ARCH_PATTERN"
-echo "  DB          : $DB_TYPE / schema=$DB_SCHEMA"
-echo "  API base    : $API_BASE"
-echo "  Error prefix: $ERROR_PREFIX"
-echo "  Confluence  : space=$CONFLUENCE_SPACE  parent=$CONFLUENCE_PARENT"
-echo "  Auth        : $AUTH_PROVIDER"
-echo ""
-if [ ${#SVC_NAMES[@]} -gt 0 ]; then
-  echo "  Services:"
-  for i in "${!SVC_NAMES[@]}"; do
-    echo "    • ${SVC_NAMES[$i]} ($(lang_label "${SVC_LANGS[$i]}")) — ${SVC_DESCS[$i]}"
-  done
-fi
-if $HAS_FRONTEND; then
-  echo "  Frontend    : $FE_FRAMEWORK / $FE_LANG / $FE_UI_LIB"
-fi
-echo ""
-if ! ask_yn "Proceed?"; then
-  echo "Aborted."
-  exit 0
-fi
-
 # ── generate service AGENTS.md ─────────────────────────────────────────────────
 
 generate_service_agents() {
@@ -920,6 +553,373 @@ Use \`core/adr/ADR_TEMPLATE.md\` to author new ADRs.
 Load \`../../AGENTS.md\` before running any ADR prompt.
 EOF
 }
+
+# ── help ───────────────────────────────────────────────────────────────────────
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  cat <<'EOF'
+onboard.sh — scaffold and extend multi-service projects
+
+COMMANDS
+  ./onboard.sh
+      New project wizard. Asks for project name, shared infrastructure
+      constants, then loops to define any number of backend services
+      (each with its own language). Optionally adds a frontend.
+
+  ./onboard.sh add-service <project-name>
+      Add one new service to an existing project. Updates the project's
+      root AGENTS.md Sub-Module Map automatically.
+
+  ./onboard.sh --help
+      Show this help.
+
+SUPPORTED LANGUAGES (per service)
+  java    Spring Boot
+  nodejs  Node.js / TypeScript / Express / Fastify
+  go      Go / Gin / Echo / Chi
+  python  Python / FastAPI / Django
+  dotnet  C# / ASP.NET Core
+
+OUTPUT STRUCTURE (new project)
+  projects/<project-name>/
+  ├── AGENTS.md                              shared constants (URLs, DB, Confluence)
+  ├── services/
+  │   └── <service-name>/AGENTS.md          one per service — language-specific
+  ├── frontend/AGENTS.md                    optional
+  ├── e2e-test/<PROJECT>_E2E_CONFIG.md
+  ├── tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
+  ├── adr/INDEX.md
+  └── fsd/README.md
+
+OUTPUT (add-service)
+  projects/<project-name>/services/<service-name>/AGENTS.md  (new)
+  projects/<project-name>/AGENTS.md                          (Sub-Module Map updated)
+
+EXAMPLES
+  # Onboard a new project
+  ./onboard.sh
+
+  # Add a Go risk-engine to an existing trade-finance project
+  ./onboard.sh add-service trade-finance
+
+LOADING ORDER (for the AI tool)
+  Every task — always load in this order:
+    1. projects/<project>/AGENTS.md                    shared constants
+    2. projects/<project>/services/<name>/AGENTS.md    service coding agent
+    3. core/<module>/<PROMPT>.md                       task prompt
+EOF
+  exit 0
+fi
+
+# ── add-service subcommand ─────────────────────────────────────────────────────
+
+if [[ "${1:-}" == "add-service" ]]; then
+  if [ -z "${2:-}" ]; then
+    echo "Usage: ./onboard.sh add-service <project-name>"
+    exit 1
+  fi
+
+  PROJECT="$2"
+  DEST="projects/$PROJECT"
+  ROOT_AGENTS="${DEST}/AGENTS.md"
+
+  if [ ! -f "$ROOT_AGENTS" ]; then
+    echo "Error: $ROOT_AGENTS not found."
+    echo "Run './onboard.sh' first to create the project, then re-run this command."
+    exit 1
+  fi
+
+  PROJECT_UPPER=$(echo "$PROJECT" | tr '[:lower:]-' '[:upper:]_' | tr -d '_')
+
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════════╗"
+  echo "║   Add Service — ${PROJECT}"
+  echo "╚══════════════════════════════════════════════════════════════╝"
+  echo ""
+  echo "Adding a new service to: $DEST"
+  echo "Supported languages: java | nodejs | go | python | dotnet"
+  echo ""
+
+  # service identity
+  SVC_NAME=$(ask "Service name (kebab-case, e.g. audit-log-service)")
+  validate_kebab "$SVC_NAME"
+
+  SVC_DIR="${DEST}/services/${SVC_NAME}"
+  if [ -d "$SVC_DIR" ]; then
+    echo ""
+    echo "  Warning: $SVC_DIR already exists."
+    if ! ask_yn "Overwrite existing service files?"; then
+      echo "Aborted."
+      exit 0
+    fi
+  fi
+
+  SVC_LANG=$(ask "Language" "java")
+  validate_lang "$SVC_LANG"
+
+  SVC_DESC=$(ask "One-line purpose" "${SVC_NAME} service")
+
+  # Read ORG from existing AGENTS.md for smart defaults
+  ORG=$(grep "Organization" "$ROOT_AGENTS" | head -1 | sed 's/.*| *\(.*\) *|.*/\1/' | xargs)
+
+  # language-specific details
+  echo ""
+  echo "  ── Details for $SVC_NAME ($(lang_label "$SVC_LANG"))"
+  local_details=""
+  case "$SVC_LANG" in
+    java)
+      pkg=$(ask "    Base package" "com.$(echo "$ORG" | tr '[:upper:] ' '[:lower:].' | tr -d ',').$(echo "$SVC_NAME" | tr '-' '.')")
+      build=$(ask "    Build tool (maven/gradle)" "maven")
+      jver=$(ask "    Java version" "17")
+      local_details="pkg=${pkg}|build=${build}|version=${jver}"
+      ;;
+    nodejs)
+      scope=$(ask "    npm package name" "@$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${SVC_NAME}")
+      nver=$(ask "    Node.js version" "20")
+      framework=$(ask "    HTTP framework (express/fastify)" "express")
+      local_details="scope=${scope}|version=${nver}|framework=${framework}"
+      ;;
+    go)
+      module=$(ask "    Go module path" "github.com/$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${SVC_NAME}")
+      gver=$(ask "    Go version" "1.22")
+      framework=$(ask "    HTTP framework (gin/echo/chi/net-http)" "gin")
+      local_details="module=${module}|version=${gver}|framework=${framework}"
+      ;;
+    python)
+      pkg=$(ask "    Python package name" "$(echo "$SVC_NAME" | tr '-' '_')")
+      pyver=$(ask "    Python version" "3.12")
+      framework=$(ask "    Framework (fastapi/django/flask)" "fastapi")
+      local_details="pkg=${pkg}|version=${pyver}|framework=${framework}"
+      ;;
+    dotnet)
+      ns=$(ask "    Root namespace" "$(echo "$ORG" | tr '[:lower:] ' '[:upper:].' | tr -d ',').$(echo "$SVC_NAME" | sed 's/-\(.\)/\U\1/g; s/^\(.\)/\U\1/')")
+      dnver=$(ask "    .NET version" "8")
+      local_details="ns=${ns}|version=${dnver}"
+      ;;
+  esac
+
+  # confirm
+  echo ""
+  echo "  Service : $SVC_NAME"
+  echo "  Language: $(lang_label "$SVC_LANG")"
+  echo "  Purpose : $SVC_DESC"
+  echo "  Target  : $SVC_DIR/AGENTS.md"
+  echo ""
+  if ! ask_yn "Proceed?"; then
+    echo "Aborted."
+    exit 0
+  fi
+
+  # generate service AGENTS.md
+  generate_service_agents \
+    "$SVC_NAME" "$SVC_LANG" "$SVC_DESC" "$local_details" "$SVC_DIR"
+
+  echo "  Created: $SVC_DIR/AGENTS.md"
+
+  # append row to Sub-Module Map in root AGENTS.md
+  # find the ADR row (always present) and insert before it
+  NEW_ROW="| ${SVC_NAME} ($(lang_label "$SVC_LANG")) | [\`services/${SVC_NAME}/AGENTS.md\`](services/${SVC_NAME}/AGENTS.md) | ${SVC_DESC} |"
+  # insert the new row before the ADR line in the Sub-Module Map
+  sed -i.bak "/^\| ADR \|/i\\
+${NEW_ROW}
+" "$ROOT_AGENTS" && rm -f "${ROOT_AGENTS}.bak"
+
+  echo "  Updated: $ROOT_AGENTS (Sub-Module Map)"
+
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════════╗"
+  echo "║   Done! Service '${SVC_NAME}' added to ${PROJECT}"
+  echo "╚══════════════════════════════════════════════════════════════╝"
+  echo ""
+  echo "Loading order for tasks on this service:"
+  echo ""
+  echo "  1. Load: ${DEST}/AGENTS.md"
+  echo "  2. Load: ${SVC_DIR}/AGENTS.md"
+  echo "  3. Run:  core/<module>/<PROMPT>.md"
+  echo ""
+  echo "To add another service:"
+  echo "  ./onboard.sh add-service ${PROJECT}"
+  echo ""
+  exit 0
+fi
+
+# ── banner ─────────────────────────────────────────────────────────────────────
+
+echo ""
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║   Agentic Context-Driven Design Framework — New Project     ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+echo ""
+echo "This wizard scaffolds a new project folder under projects/."
+echo "To add a service to an existing project: ./onboard.sh add-service <project>"
+echo "Press Enter to accept defaults shown in [brackets]."
+echo ""
+
+# ── project identity ───────────────────────────────────────────────────────────
+
+section "Project Identity"
+PROJECT=$(ask "Project name (kebab-case, e.g. trade-finance)")
+validate_kebab "$PROJECT"
+
+PROJECT_UPPER=$(echo "$PROJECT" | tr '[:lower:]-' '[:upper:]_' | tr -d '_')
+PROJECT_TITLE=$(echo "$PROJECT" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++) $i=toupper(substr($i,1,1)) substr($i,2)}1')
+
+DEST="projects/$PROJECT"
+if [ -d "$DEST" ]; then
+  echo ""
+  echo "  Warning: $DEST already exists."
+  echo "  Continuing will overwrite generated files (AGENTS.md, e2e-test, tech-spec, adr, fsd)."
+  echo "  Manually-edited files inside that folder will be overwritten."
+  echo ""
+  if ! ask_yn "Continue and overwrite existing files?"; then
+    echo "Aborted. Choose a different project name or delete the folder first."
+    exit 0
+  fi
+fi
+
+DESCRIPTION=$(ask "One-line project description" "${PROJECT_TITLE} system")
+ORG=$(ask "Organization / team name" "ACME Corp")
+ARCH_PATTERN=$(ask "Architecture pattern (hexagonal+microservice / microservice / monolith)" "hexagonal+microservice")
+
+# ── shared infrastructure ──────────────────────────────────────────────────────
+
+section "Shared Infrastructure"
+BASE_URL_SIT=$(ask "SIT environment base URL"  "https://${PROJECT}-sit.example.com")
+BASE_URL_DEV=$(ask "DEV environment base URL"  "https://${PROJECT}-dev.example.com")
+BASE_URL_UAT=$(ask "UAT environment base URL"  "https://${PROJECT}-uat.example.com")
+
+section "Database"
+DB_TYPE=$(ask "Database type (mssql / mysql / postgres / oracle / mongodb)" "mssql")
+DB_SCHEMA=$(ask "Default schema / database name" "dbo")
+
+section "API"
+API_BASE=$(ask "API base path" "/api/${PROJECT}/v1")
+ERROR_PREFIX=$(ask "Error code prefix (2–5 uppercase letters)" "$(echo "$PROJECT" | cut -c1-3 | tr '[:lower:]' '[:upper:]')")
+
+section "Confluence (documentation)"
+CONFLUENCE_SPACE=$(ask "Confluence space key" "$PROJECT_UPPER")
+CONFLUENCE_PARENT=$(ask "Confluence parent page ID" "123456789")
+
+section "Auth & E2E"
+AUTH_PROVIDER=$(ask "Auth provider (azure-ad / keycloak / okta / none)" "azure-ad")
+AUTH_SESSION=$(ask "Playwright auth session file" "playwright/.auth/session.json")
+
+# ── services (multi-language) ──────────────────────────────────────────────────
+
+section "Backend Services"
+echo "  Define each backend service. A service = one deployable unit (microservice, API, batch job)."
+echo "  Supported languages: java | nodejs | go | python | dotnet"
+echo ""
+
+declare -a SVC_NAMES=()
+declare -a SVC_LANGS=()
+declare -a SVC_DESCS=()
+
+svc_index=1
+while true; do
+  SVC_NAME=$(ask "Service $svc_index name (kebab-case, e.g. payment-api) — or press Enter to finish")
+  [ -z "$SVC_NAME" ] && break
+  validate_kebab "$SVC_NAME"
+
+  SVC_LANG=$(ask "  Language for $SVC_NAME" "java")
+  validate_lang "$SVC_LANG"
+
+  SVC_DESC=$(ask "  One-line purpose of $SVC_NAME" "${SVC_NAME} service")
+
+  SVC_NAMES+=("$SVC_NAME")
+  SVC_LANGS+=("$SVC_LANG")
+  SVC_DESCS+=("$SVC_DESC")
+  svc_index=$((svc_index + 1))
+done
+
+if [ ${#SVC_NAMES[@]} -eq 0 ]; then
+  echo ""
+  echo "  No services defined — you can add services/*/AGENTS.md manually later."
+fi
+
+# Collect language-specific details per service
+declare -a SVC_DETAILS=()
+
+for i in "${!SVC_NAMES[@]}"; do
+  svc="${SVC_NAMES[$i]}"
+  lang="${SVC_LANGS[$i]}"
+  echo ""
+  echo "  ── Details for $svc ($(lang_label "$lang"))"
+  case "$lang" in
+    java)
+      pkg=$(ask "    Base package" "com.$(echo "$ORG" | tr '[:upper:] ' '[:lower:].' | tr -d ',').$(echo "$svc" | tr '-' '.')")
+      build=$(ask "    Build tool (maven/gradle)" "maven")
+      jver=$(ask "    Java version" "17")
+      SVC_DETAILS+=("pkg=${pkg}|build=${build}|version=${jver}")
+      ;;
+    nodejs)
+      scope=$(ask "    npm package name" "@$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${svc}")
+      nver=$(ask "    Node.js version" "20")
+      framework=$(ask "    HTTP framework (express/fastify)" "express")
+      SVC_DETAILS+=("scope=${scope}|version=${nver}|framework=${framework}")
+      ;;
+    go)
+      module=$(ask "    Go module path" "github.com/$(echo "$ORG" | tr '[:upper:] ' '[:lower:]-' | tr -d ',')/${svc}")
+      gver=$(ask "    Go version" "1.22")
+      framework=$(ask "    HTTP framework (gin/echo/chi/net-http)" "gin")
+      SVC_DETAILS+=("module=${module}|version=${gver}|framework=${framework}")
+      ;;
+    python)
+      pkg=$(ask "    Python package name" "$(echo "$svc" | tr '-' '_')")
+      pyver=$(ask "    Python version" "3.12")
+      framework=$(ask "    Framework (fastapi/django/flask)" "fastapi")
+      SVC_DETAILS+=("pkg=${pkg}|version=${pyver}|framework=${framework}")
+      ;;
+    dotnet)
+      ns=$(ask "    Root namespace" "$(echo "$ORG" | tr '[:lower:] ' '[:upper:].' | tr -d ',').$(echo "$svc" | sed 's/-\(.\)/\U\1/g; s/^\(.\)/\U\1/')")
+      dnver=$(ask "    .NET version" "8")
+      SVC_DETAILS+=("ns=${ns}|version=${dnver}")
+      ;;
+  esac
+done
+
+# ── frontend ───────────────────────────────────────────────────────────────────
+
+section "Frontend (optional)"
+HAS_FRONTEND=false
+if ask_yn "Does this project have a frontend?"; then
+  HAS_FRONTEND=true
+  FE_FRAMEWORK=$(ask "  Frontend framework (react/vue/angular)" "react")
+  FE_LANG=$(ask "  Language (typescript/javascript)" "typescript")
+  FE_UI_LIB=$(ask "  UI component library (mui/ant-design/tailwind/none)" "mui")
+  FE_STATE=$(ask "  State management (zustand/redux/pinia/none)" "zustand")
+fi
+
+# ── confirm ────────────────────────────────────────────────────────────────────
+
+echo ""
+echo "══════════════════════════════════════════════════════════════"
+echo "  Ready to scaffold — here is what will be created:"
+echo ""
+echo "  Project     : $PROJECT"
+echo "  Description : $DESCRIPTION"
+echo "  Org         : $ORG"
+echo "  Architecture: $ARCH_PATTERN"
+echo "  DB          : $DB_TYPE / schema=$DB_SCHEMA"
+echo "  API base    : $API_BASE"
+echo "  Error prefix: $ERROR_PREFIX"
+echo "  Confluence  : space=$CONFLUENCE_SPACE  parent=$CONFLUENCE_PARENT"
+echo "  Auth        : $AUTH_PROVIDER"
+echo ""
+if [ ${#SVC_NAMES[@]} -gt 0 ]; then
+  echo "  Services:"
+  for i in "${!SVC_NAMES[@]}"; do
+    echo "    • ${SVC_NAMES[$i]} ($(lang_label "${SVC_LANGS[$i]}")) — ${SVC_DESCS[$i]}"
+  done
+fi
+if $HAS_FRONTEND; then
+  echo "  Frontend    : $FE_FRAMEWORK / $FE_LANG / $FE_UI_LIB"
+fi
+echo ""
+if ! ask_yn "Proceed?"; then
+  echo "Aborted."
+  exit 0
+fi
 
 # ── scaffold ───────────────────────────────────────────────────────────────────
 
