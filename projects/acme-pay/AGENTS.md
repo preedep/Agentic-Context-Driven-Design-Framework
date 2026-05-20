@@ -1,6 +1,9 @@
 # acme-pay — Master Entry Point
 
-> **This is the Java (Spring Boot) example project.** For Node.js or Go projects, use this file as a structural template but replace the language-specific placeholders. See [QUICKSTART.md](../../QUICKSTART.md#step-2--fill-in-your-project-constants) for the full placeholder table by language.
+> **Example project (Java backend + React frontend).**
+> This file shows the structure for a single-language backend.
+> For multi-service projects (Java + Node.js + Go), run `./onboard.sh` — it generates
+> one `services/<name>/AGENTS.md` per service, each with its own language-specific placeholders.
 
 Load this file first before running any prompt in the acme-pay project.
 
@@ -10,21 +13,16 @@ Load this file first before running any prompt in the acme-pay project.
 
 | Field | Value |
 |---|---|
-| **Project Name** | acme-pay (ACME Payment Processing System) |
+| **Project Name** | acme-pay |
+| **Description** | ACME Payment Processing System |
 | **Organization** | ACME Corp |
-| **Type** | Enterprise back-office system for payment transaction processing |
-| **Backend** | Spring Boot 3 / Java 17 / JdbcTemplate (no JPA/ORM) |
-| **Frontend** | React 18 / TypeScript / MUI v6 |
+| **Architecture** | hexagonal+microservice |
 | **Database** | Azure SQL (Microsoft SQL Server) |
-| **Auth** | SSO via Azure AD |
+| **Auth Provider** | Azure AD SSO |
 
 ---
 
-## Placeholder Values
-
-These replace `{{PLACEHOLDERS}}` in all `core/` prompt files.
-
-### Common (all stacks)
+## Placeholder Values — Shared (all services)
 
 | Placeholder | Value |
 |---|---|
@@ -39,42 +37,41 @@ These replace `{{PLACEHOLDERS}}` in all `core/` prompt files.
 | `{{API_BASE_PATH}}` | `/api/acme-pay` |
 | `{{AUTH_SESSION_FILE}}` | `playwright/.auth/session.json` |
 
-### Java-specific (replace or remove for other stacks)
-
-| Placeholder | Value |
-|---|---|
-| `{{BASE_PACKAGE}}` | `com.acme.pay.restapi` |
-| `{{BUILD_TOOL}}` | `maven` |
-| `{{JAVA_VERSION}}` | `17` |
-| `{{CODING_AGENT}}` | `core/java-developer-coding/AGENTS.md` |
+> Language-specific placeholders (base package, build tool, etc.) are defined
+> in each service's own `services/<name>/AGENTS.md` (or `backend/AGENTS.md` for single-service projects).
 
 ---
 
 ## Architecture Pattern
 
-| Field | Value |
-|---|---|
-| `{{ARCHITECTURE_PATTERN}}` | `hexagonal+microservice` |
+**Pattern:** `hexagonal+microservice`
 
-Active patterns: each service is structured with Hexagonal Architecture (domain core, ports, adapters) and deployed as an independent microservice. See `core/architecture/AGENTS.md` for layer boundary rules and code review checklists.
+Each service is structured with Hexagonal Architecture (domain core, ports, adapters)
+and deployed as an independent microservice.
+
+Layer boundary rules: `core/architecture/AGENTS.md`
+NFR standards (logging, OWASP, security, Kubernetes): `core/nfr/AGENTS.md`
+
+---
 
 ## Architecture Decisions
 
 - All database access via `JdbcTemplate` — no JPA, no Hibernate.
-- Business logic follows **Usecase → Step** pattern mapped to Hexagonal layers: UseCase = application port impl, Steps = domain services, Repository = driven adapter.
+- Business logic follows **Usecase → Step** pattern: UseCase = application port impl, Steps = domain services, Repository = driven adapter.
 - Each `Step` is independently unit-testable and receives a shared `Context` object.
 - Error codes follow format `PAY001`, `PAY002` — prefix `PAY` + 3-digit number.
-- All API responses use a common `ApiResponse<T>` wrapper.
+- All API responses use a common `ApiResponse<T>` wrapper with `statusCode`, `data`, and `errors` fields.
+- Each service owns its own database schema — no cross-service direct DB access.
 
 ---
 
 ## Sub-Module Map
 
-| Domain | AGENTS.md | Use When |
+| Service / Domain | AGENTS.md | Description |
 |---|---|---|
-| ADR | [`adr/INDEX.md`](adr/INDEX.md) | Query or add architecture decision records |
-| Backend | [`backend/AGENTS.md`](backend/AGENTS.md) | Backend code (uses `{{CODING_AGENT}}`), unit tests, code review |
-| Frontend | [`frontend/AGENTS.md`](frontend/AGENTS.md) | React code, component tests, FSD specs |
+| Backend (Java) | [`backend/AGENTS.md`](backend/AGENTS.md) | Spring Boot 3 / Java 17 — payment processing API |
+| Frontend (React) | [`frontend/AGENTS.md`](frontend/AGENTS.md) | React 18 / TypeScript / MUI v6 frontend |
+| ADR | [`adr/INDEX.md`](adr/INDEX.md) | Architecture decision records |
 | Tech Spec | [`tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md`](tech-spec/ACMEPAY_TECH_SPEC_ROUTER.md) | Generate API/Batch/DB specs from FSD |
 | E2E Test | [`e2e-test/ACMEPAY_E2E_CONFIG.md`](e2e-test/ACMEPAY_E2E_CONFIG.md) | Playwright test setup and script generation |
 
@@ -83,6 +80,8 @@ Active patterns: each service is structured with Hexagonal Architecture (domain 
 ## Do NOT
 
 - Do not use JPA or Hibernate — all SQL via `JdbcTemplate` only.
-- Do not add `@Transactional` outside the Usecase layer.
+- Do not add `@Transactional` outside the UseCase layer.
 - Do not hardcode environment URLs — always use `{{BASE_URL_SIT}}` placeholder.
 - Do not create new error codes without updating the error code registry.
+- Do not allow cross-service direct database access — communicate via API only.
+- Do not commit real credentials, tokens, or internal URLs to the framework repo.

@@ -8,23 +8,39 @@ Get your project running with this framework in under 10 minutes.
 
 **Option A — automated (recommended)**
 
-Run the onboarding script from the framework root:
+Run the onboarding wizard from the framework root:
 
 ```bash
-./onboard.sh <your-project> <language>
+./onboard.sh
 ```
 
-| Argument | Values |
-|---|---|
-| `<your-project>` | kebab-case name, e.g. `trade-finance`, `payments` |
-| `<language>` | `java` \| `nodejs` \| `go` |
+The wizard asks for your project name, description, shared infrastructure constants (URLs, DB, Confluence), then loops asking for each backend service — **name + language** — so you can define any mix:
 
-The script will:
-1. Copy `projects/acme-pay/` to `projects/<your-project>/`
-2. Prompt you for each constant (URLs, schema, error prefix, etc.)
-3. Replace all placeholder values in the copied files
-4. Add your project folder to `.gitignore` automatically
-5. Print the next steps
+```
+Service 1 name: payment-api     Language: java
+Service 2 name: notification-bff  Language: nodejs
+Service 3 name: risk-engine     Language: go
+Service 4 name:                 ← press Enter to finish
+```
+
+It then generates:
+
+```
+projects/<your-project>/
+├── AGENTS.md                              ← shared constants (URLs, DB, Confluence, error prefix)
+├── services/
+│   ├── payment-api/AGENTS.md             ← Java placeholders + coding agent
+│   ├── notification-bff/AGENTS.md        ← Node.js placeholders + coding agent
+│   └── risk-engine/AGENTS.md             ← Go placeholders + coding agent
+├── frontend/AGENTS.md                    ← optional
+├── e2e-test/<PROJECT>_E2E_CONFIG.md
+├── tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
+└── adr/INDEX.md
+```
+
+And adds `projects/<your-project>/` to `.gitignore` automatically.
+
+Supported languages: `java` | `nodejs` | `go` | `python` | `dotnet`
 
 **Option B — manual**
 
@@ -38,56 +54,68 @@ Then continue to Step 2 to fill in the values yourself.
 
 ## Step 2 — Fill in your project constants
 
-> **Skip this step if you used `onboard.sh`** — it already did the replacements. Just review `projects/<your-project>/AGENTS.md` to verify.
+> **Skip this step if you used `onboard.sh`** — it already did the replacements. Just review the generated files to verify.
 
-Open `projects/<your-project>/AGENTS.md` and replace every value in the **Placeholder Values** table.
+For manual setup, fill in two layers of AGENTS.md files.
 
-### Common placeholders (all languages)
+### Layer 1 — `projects/<your-project>/AGENTS.md` (shared across all services)
 
 | Placeholder | Replace with | Example |
 |---|---|---|
-| `{{PROJECT_NAME}}` | your project slug | `trade-finance` |
-| `{{BASE_URL_SIT}}` | your SIT environment URL | `https://myapp-sit.example.com` |
-| `{{BASE_URL_UAT}}` | your UAT environment URL | `https://myapp-uat.example.com` |
-| `{{CONFLUENCE_SPACE}}` | your Confluence space key | `TRADEFINANCE` |
-| `{{DB_SCHEMA}}` | your database schema name | `dbo`, `public` |
-| `{{ERROR_CODE_PREFIX}}` | your error code prefix | `TRD`, `PAY`, `INV` |
-| `{{API_BASE_PATH}}` | your API base path | `/api/trade-finance/v1` |
+| `{{PROJECT_NAME}}` | project slug | `trade-finance` |
+| `{{BASE_URL_SIT}}` | SIT environment URL | `https://myapp-sit.example.com` |
+| `{{BASE_URL_DEV}}` | DEV environment URL | `https://myapp-dev.example.com` |
+| `{{BASE_URL_UAT}}` | UAT environment URL | `https://myapp-uat.example.com` |
+| `{{CONFLUENCE_SPACE}}` | Confluence space key | `TRADEFINANCE` |
+| `{{DB_SCHEMA}}` | default DB schema | `dbo`, `public` |
+| `{{ERROR_CODE_PREFIX}}` | error code prefix | `TRD`, `PAY`, `INV` |
+| `{{API_BASE_PATH}}` | API base path | `/api/trade-finance/v1` |
+| `{{AUTH_SESSION_FILE}}` | Playwright auth session | `playwright/.auth/session.json` |
 
-### Language-specific placeholders
+### Layer 2 — `projects/<your-project>/services/<name>/AGENTS.md` (one per service)
 
-Pick the row that matches your backend stack and add it to the placeholder table.
+Each service defines its own language-specific placeholders. Create one file per service.
 
 **Java (Spring Boot)**
+| Placeholder | Example |
+|---|---|
+| `{{BASE_PACKAGE}}` | `com.example.tradefinance` |
+| `{{BUILD_TOOL}}` | `maven` / `gradle` |
+| `{{JAVA_VERSION}}` | `17`, `21` |
+| `{{CODING_AGENT}}` | `core/java-developer-coding/AGENTS.md` |
 
-| Placeholder | Replace with | Example |
-|---|---|---|
-| `{{BASE_PACKAGE}}` | Java base package | `com.example.tradefinance` |
-| `{{BUILD_TOOL}}` | `maven` or `gradle` | `maven` |
-| `{{JAVA_VERSION}}` | Java version | `17`, `21` |
-| `{{CODING_AGENT}}` | path to coding standard | `core/java-developer-coding/AGENTS.md` |
-
-**Node.js (TypeScript / Express / Fastify)**
-
-| Placeholder | Replace with | Example |
-|---|---|---|
-| `{{NPM_SCOPE}}` | npm package scope | `@example/trade-finance` |
-| `{{NODE_VERSION}}` | Node.js version | `20`, `22` |
-| `{{HTTP_FRAMEWORK}}` | `express` or `fastify` | `express` |
-| `{{CODING_AGENT}}` | path to coding standard | `core/nodejs-developer-coding/AGENTS.md` |
+**Node.js (TypeScript)**
+| Placeholder | Example |
+|---|---|
+| `{{NPM_SCOPE}}` | `@example/trade-finance` |
+| `{{NODE_VERSION}}` | `20`, `22` |
+| `{{HTTP_FRAMEWORK}}` | `express` / `fastify` |
+| `{{CODING_AGENT}}` | `core/nodejs-developer-coding/AGENTS.md` |
 
 **Go**
+| Placeholder | Example |
+|---|---|
+| `{{GO_MODULE}}` | `github.com/example/trade-finance` |
+| `{{GO_VERSION}}` | `1.22` |
+| `{{HTTP_FRAMEWORK}}` | `gin` / `echo` / `chi` |
+| `{{CODING_AGENT}}` | `core/go-developer-coding/AGENTS.md` |
 
-| Placeholder | Replace with | Example |
-|---|---|---|
-| `{{GO_MODULE}}` | Go module path | `github.com/example/trade-finance` |
-| `{{GO_VERSION}}` | Go version | `1.22` |
-| `{{HTTP_FRAMEWORK}}` | `gin`, `echo`, `chi`, or `net/http` | `gin` |
-| `{{CODING_AGENT}}` | path to coding standard | _(not yet in core/ — add your own)_ |
+**Python**
+| Placeholder | Example |
+|---|---|
+| `{{PYTHON_PACKAGE}}` | `trade_finance` |
+| `{{PYTHON_VERSION}}` | `3.12` |
+| `{{HTTP_FRAMEWORK}}` | `fastapi` / `django` |
+| `{{CODING_AGENT}}` | `core/python-developer-coding/AGENTS.md` |
 
-> **Tip:** Delete placeholders that don't apply to your stack. The AI will only use what you define.
+**\.NET**
+| Placeholder | Example |
+|---|---|
+| `{{ROOT_NAMESPACE}}` | `Example.TradeFinance` |
+| `{{DOTNET_VERSION}}` | `8` |
+| `{{CODING_AGENT}}` | `core/dotnet-developer-coding/AGENTS.md` |
 
-Also update the **System Context** table (tech stack, team, auth) and the **Do NOT** list.
+> **Tip:** `{{CODING_AGENT}}` is the key connector — it tells the AI which coding standard to apply for that service. Each service sets its own value independently.
 
 ---
 
@@ -121,16 +149,14 @@ Run:  projects/<your-project>/tech-spec/<PROJECT>_TECH_SPEC_ROUTER.md
 Input: [paste your FSD document]
 ```
 
-**Example — write backend code:**
+**Example — write backend code for a specific service:**
 ```
-Load: projects/<your-project>/AGENTS.md
-Load: projects/<your-project>/backend/AGENTS.md
-Run:  {{CODING_AGENT}}          ← value from your placeholder table
+Load: projects/<your-project>/AGENTS.md                       ← shared constants
+Load: projects/<your-project>/services/payment-api/AGENTS.md  ← service language + coding agent
+Run:  {{CODING_AGENT}}   ← resolved from the service AGENTS.md (e.g. core/java-developer-coding/AGENTS.md)
 ```
-Replace `{{CODING_AGENT}}` with the path that matches your stack:
-- Java → `core/java-developer-coding/AGENTS.md`
-- Node.js → `core/nodejs-developer-coding/AGENTS.md`
-- Go → add your own under `core/go-developer-coding/AGENTS.md`
+Each service loads its own AGENTS.md which tells the AI which coding standard to apply.
+A Java service uses `core/java-developer-coding/AGENTS.md`, a Node.js service uses `core/nodejs-developer-coding/AGENTS.md`, etc.
 
 **Example — TDD full cycle:**
 ```
