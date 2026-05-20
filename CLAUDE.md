@@ -10,6 +10,14 @@ The framework is intentionally **not tied to any specific AI tool**. The same co
 
 There is no application code to build, compile, or test. All files are Markdown context/prompt files and HTML Confluence templates.
 
+
+Goal 
+- Easy to use
+- Clean
+- Not duplicated context 
+- Agent agnostic
+
+
 ## Three-Layer Architecture
 
 ```
