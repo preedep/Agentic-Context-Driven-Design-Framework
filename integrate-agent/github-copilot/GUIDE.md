@@ -45,8 +45,11 @@ This project uses the Agentic Context-Driven Design Framework in `agent-framewor
 | TDD cycle (RED → GREEN → REFACTOR)  | `agent-framework/core/tdd/TDD_CYCLE.md` |
 | Generate unit tests                 | `agent-framework/core/unit-test/AGENTS.md` |
 | Generate E2E Playwright tests       | `agent-framework/core/e2e-test/GEN_SCRIPT_FROM_TC.md` |
-| Write Java Spring Boot code         | `agent-framework/core/java-developer-coding/AGENTS.md` |
-| Write Node.js / TypeScript code     | `agent-framework/core/nodejs-developer-coding/AGENTS.md` |
+| Write Java Spring Boot code         | `agent-framework/core/coding/java/AGENTS.md` |
+| Write Node.js / TypeScript code     | `agent-framework/core/coding/nodejs/AGENTS.md` |
+| Write Go service code               | `agent-framework/core/coding/go/AGENTS.md` |
+| Write Python service code           | `agent-framework/core/coding/python/AGENTS.md` |
+| Write .NET / C# service code        | `agent-framework/core/coding/dotnet/AGENTS.md` |
 | Code review (7 dimensions)          | `agent-framework/core/code-review/REVIEW_STANDARD.md` |
 | Reverse-engineer spec from code     | `agent-framework/core/code-to-spec/GENERATE_API_SPEC.md` |
 | Architecture decisions (ADR)        | `agent-framework/core/adr/ADR_TEMPLATE.md` |

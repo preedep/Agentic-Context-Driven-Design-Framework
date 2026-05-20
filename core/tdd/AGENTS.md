@@ -60,7 +60,7 @@ Step 4: Test Cases — ALL layers written together (TDD — tests FIRST)
 
 Step 5: Implementation (GREEN)
   └─ Write minimum code to make the failing unit tests pass — layer by layer
-     Tool: core/java-developer-coding/AGENTS.md + core/tdd/TDD_CYCLE.md
+     Tool: core/coding/java/AGENTS.md + core/tdd/TDD_CYCLE.md
      Constraint: follow Usecase → Step pattern, NFR requirements
      Output: Controller, UseCase, Steps, Repository, model classes
      Gate: full test suite (unit + integration) must be green before moving on

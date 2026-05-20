@@ -33,8 +33,11 @@ integrate-agent/ ← optional wiring guides per AI tool (Claude Code, Copilot, O
 | TDD | `core/tdd/` | Red→Green→Refactor cycle prompt (`TDD_CYCLE.md`) |
 | Unit Test | `core/unit-test/` | JUnit 5 + Playwright test generation |
 | E2E Test | `core/e2e-test/` | Playwright test analysis and script generation |
-| Java Developer Coding | `core/java-developer-coding/` | Spring Boot coding standards |
-| Node.js Developer Coding | `core/nodejs-developer-coding/` | Node.js / TypeScript / Express coding standards |
+| Java Coding | `core/coding/java/` | Spring Boot coding standards |
+| Node.js Coding | `core/coding/nodejs/` | Node.js / TypeScript / Express coding standards |
+| Go Coding | `core/coding/go/` | Go / Gin / Echo coding standards |
+| Python Coding | `core/coding/python/` | Python / FastAPI / Django coding standards |
+| .NET Coding | `core/coding/dotnet/` | C# / ASP.NET Core coding standards |
 | Code Review | `core/code-review/` | 7-dimension review checklist |
 | Code to Spec | `core/code-to-spec/` | Reverse-engineer spec from existing source code |
 | Dependency Update | `core/dependency-update/` | Multi-repo Maven dependency bump automation |

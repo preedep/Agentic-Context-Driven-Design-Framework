@@ -70,11 +70,11 @@ lang_label() {
 
 coding_agent_for() {
   case "$1" in
-    java)   echo "core/java-developer-coding/AGENTS.md" ;;
-    nodejs) echo "core/nodejs-developer-coding/AGENTS.md" ;;
-    go)     echo "core/go-developer-coding/AGENTS.md" ;;
-    python) echo "core/python-developer-coding/AGENTS.md" ;;
-    dotnet) echo "core/dotnet-developer-coding/AGENTS.md" ;;
+    java)   echo "core/coding/java/AGENTS.md" ;;
+    nodejs) echo "core/coding/nodejs/AGENTS.md" ;;
+    go)     echo "core/coding/go/AGENTS.md" ;;
+    python) echo "core/coding/python/AGENTS.md" ;;
+    dotnet) echo "core/coding/dotnet/AGENTS.md" ;;
     *)      echo "core/${1}-developer-coding/AGENTS.md" ;;
   esac
 }

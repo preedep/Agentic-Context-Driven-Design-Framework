@@ -20,8 +20,12 @@ agent-framework/
 │   ├── tdd/                     # TDD workflow: Red→Green→Refactor cycle
 │   ├── unit-test/               # Unit test generation (JUnit, Playwright)
 │   ├── e2e-test/                # E2E test analysis, script generation
-│   ├── java-developer-coding/   # Spring Boot coding standards
-│   ├── nodejs-developer-coding/ # Node.js / TypeScript / Express coding standards
+│   ├── coding/
+│   │   ├── java/             # Spring Boot coding standards
+│   │   ├── nodejs/           # Node.js / TypeScript / Express coding standards
+│   │   ├── go/               # Go / Gin / Echo coding standards
+│   │   ├── python/           # Python / FastAPI / Django coding standards
+│   │   └── dotnet/           # C# / ASP.NET Core coding standards
 │   ├── code-review/             # Code review standards and checklists
 │   ├── code-to-spec/            # Generate Confluence specs from source code
 │   ├── dependency-update/       # Automated Java dependency update process
@@ -99,8 +103,8 @@ graph TD
         UT["unit-test/AGENTS.md"]
         E2E_A["e2e-test/ANALYZE_TEST_CASE.md"]
         E2E_G["e2e-test/GEN_SCRIPT_FROM_TC.md"]
-        JAVA["java-developer-coding/AGENTS.md"]
-        NODE["nodejs-developer-coding/AGENTS.md"]
+        JAVA["coding/java/AGENTS.md"]
+        NODE["coding/nodejs/AGENTS.md"]
     end
 
     subgraph CORE_QUALITY["core/  —  Quality & Operations"]
@@ -209,8 +213,11 @@ Identify the right prompt from the Agent Index below, then follow the tool-speci
 | TDD | [`core/tdd/AGENTS.md`](core/tdd/AGENTS.md) | Run Red→Green→Refactor cycle; enforce test-first development |
 | Unit Test | [`core/unit-test/AGENTS.md`](core/unit-test/AGENTS.md) | Generate JUnit 5 backend tests or Playwright frontend tests |
 | E2E Test | [`core/e2e-test/AGENTS.md`](core/e2e-test/AGENTS.md) | Analyze test cases and generate Playwright scripts |
-| Java Developer Coding | [`core/java-developer-coding/AGENTS.md`](core/java-developer-coding/AGENTS.md) | Write new Spring Boot code following project standards |
-| Node.js Developer Coding | [`core/nodejs-developer-coding/AGENTS.md`](core/nodejs-developer-coding/AGENTS.md) | Write new Node.js / TypeScript code following project standards |
+| Java Coding | [`core/coding/java/AGENTS.md`](core/coding/java/AGENTS.md) | Write new Spring Boot code following project standards |
+| Node.js Coding | [`core/coding/nodejs/AGENTS.md`](core/coding/nodejs/AGENTS.md) | Write new Node.js / TypeScript code following project standards |
+| Go Coding | [`core/coding/go/AGENTS.md`](core/coding/go/AGENTS.md) | Write new Go service code following project standards |
+| Python Coding | [`core/coding/python/AGENTS.md`](core/coding/python/AGENTS.md) | Write new Python service code following project standards |
+| .NET Coding | [`core/coding/dotnet/AGENTS.md`](core/coding/dotnet/AGENTS.md) | Write new C# / ASP.NET Core code following project standards |
 | Code Review | [`core/code-review/AGENTS.md`](core/code-review/AGENTS.md) | Review a branch for performance, code smell, security, and test coverage |
 | Code to Spec | [`core/code-to-spec/AGENTS.md`](core/code-to-spec/AGENTS.md) | Generate a Confluence API spec from existing source code |
 | Dependency Update | [`core/dependency-update/AGENTS.md`](core/dependency-update/AGENTS.md) | Automatically update Java library versions across multiple repos |
